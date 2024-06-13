@@ -1,0 +1,7 @@
+_base_:
+- ../model/s4.yml
+- ../dataset/pems-bay.yml
+_custom_imports_:
+- forecaster.network
+- forecaster.dataset
+- forecaster.model

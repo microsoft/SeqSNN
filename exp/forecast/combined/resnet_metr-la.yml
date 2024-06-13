@@ -1,0 +1,7 @@
+_base_:
+- ../model/resnet.yml
+- ../dataset/metr-la.yml
+_custom_imports_:
+- network
+- dataset
+- model

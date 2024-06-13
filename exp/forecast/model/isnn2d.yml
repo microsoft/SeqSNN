@@ -1,0 +1,6 @@
+network:
+  type: ISNN2d
+  num_steps: 10
+  layers: 2
+  hidden_size: 128
+  encoder_type: conv

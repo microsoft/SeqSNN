@@ -1,0 +1,43 @@
+_base_:
+- ../model/transformer.yml
+- ../dataset/solar.yml
+
+data:
+  type: TSMSDataset
+  file: data/LSTNet_ts/solar-energy/solar_AL.txt
+  window: 168
+  horizon: 24
+  train_ratio: 0.6
+  test_ratio: 0.2
+  normalize: 2
+  raw_label: False
+
+model:
+  type: ts
+  task: regression
+  optimizer: Adam
+  lr: 0.001
+  weight_decay: 0.0
+  loss_fn: mse
+  metrics: [r2, rse]
+  observe: loss
+  lower_is_better: True
+  max_epoches: 1000
+  early_stop: 30
+  batch_size: 128
+  aggregate: True
+
+network:
+  type: TSTransformer
+  emb_dim: 512
+  emb_type: static
+  hidden_size: 512
+  dropout: 0.1
+  num_layers: 2
+  num_heads: 8
+  is_bidir: False
+
+runtime:
+  seed: 41
+  use_cuda: true
+  output_dir: ./outputs/staticPE_tstransformer_horizon=24_solar

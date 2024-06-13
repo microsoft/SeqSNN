@@ -1,0 +1,7 @@
+_base_:
+- ../model/snn2d.yml
+- ../dataset/snn_metr-la.yml
+_custom_imports_:
+- forecaster.network
+- forecaster.dataset
+- forecaster.model

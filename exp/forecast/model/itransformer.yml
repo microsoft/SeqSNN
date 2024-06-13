@@ -1,0 +1,4 @@
+network:
+  type: iTransformer
+  d_ff: 512
+  e_layers: 2

@@ -1,0 +1,7 @@
+_base_:
+- ../model/tcn2d.yml
+- ../dataset/traffic.yml
+_custom_imports_:
+- selfsuperviser.network
+- selfsuperviser.dataset
+- selfsuperviser.model

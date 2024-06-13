@@ -1,0 +1,7 @@
+_base_:
+- ../model/tensorformer2d.yml
+- ../dataset/solar.yml
+_custom_imports_:
+- selfsuperviser.network
+- selfsuperviser.dataset
+- selfsuperviser.model
