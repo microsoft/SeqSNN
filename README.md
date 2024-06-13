@@ -14,9 +14,11 @@ You can change the `yml` configuration files as you want.
 We also provide several classic ANN models for time-series forecasting, such as TCN, Autoformer, LSTNet, and MTGNN.
 You can add, remove, or modify your model architecture in `forecaster/network/XXX.py`.
 
-## Dataset
+## Datasets
 
-Datasets are all public.
+Metr-la and Pems-bay are available at at [Google Drive](https://drive.google.com/drive/folders/10FOTa6HXPqX8Pf5WRoRwcFnW9BrNZEIX) or [Baidu Yun](https://pan.baidu.com/s/14Yy9isAIZYdU__OYEQGa_g).
+Solar and Electricity can be downloaded from  (https://github.com/laiguokun/multivariate-time-series-data).
+
 The folder structure of this procect is as follows:
 ```
 SeqSNN
