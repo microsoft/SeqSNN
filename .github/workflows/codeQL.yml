@@ -5,6 +5,11 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+    types:
+      - opened
+      - edited
+      - labeled
+      - unlabeled
   schedule:
     - cron: '0 0 * * *'
 
