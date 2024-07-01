@@ -2,6 +2,12 @@ name: Pylint
 
 on:
   pull_request:
+    types:
+      - opened
+      - edited
+      - labeled
+      - unlabeled
+    branches: [main]
   push:
     branches: [main]
 
