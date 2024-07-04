@@ -1,9 +1,9 @@
 _base_:
 - ../dataset/pems-bay.yml
 _custom_imports_:
-- forecaster.network
-- forecaster.dataset
-- forecaster.model
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
 
 data:
   type: TSMSDataset
@@ -13,7 +13,7 @@ data:
   train_ratio: 0.7
   test_ratio: 0.1
   raw_label: False
-model:
+runner:
   type: ts
   task: regression
   optimizer: Adam

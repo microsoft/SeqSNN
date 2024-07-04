@@ -2,16 +2,16 @@ _base_:
 - ../model/tcn2d.yml
 - ../dataset/pems-bay.yml
 _custom_imports_:
-- forecaster.network
-- forecaster.dataset
-- forecaster.model
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
 
 data:
   raw_label: False
   window: 12
   horizon: 24
 
-model:
+runner:
   type: ts
   task: regression
   optimizer: Adam

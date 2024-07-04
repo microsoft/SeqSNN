@@ -10,7 +10,7 @@ data:
   normalize: 2
   raw_label: False
 
-model:
+runner:
   type: ts
   task: regression
   optimizer: Adam

@@ -2,16 +2,16 @@ _base_:
 - ../model/spikegru.yml
 - ../dataset/solar.yml
 _custom_imports_:
-- forecaster.network
-- forecaster.dataset
-- forecaster.model
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
 
 data:
   raw_label: False
   window: 168
   horizon: 96
 
-model:
+runner:
   type: snnvsts
   batch_size: 44
   aggregate: False

@@ -2,9 +2,9 @@ _base_:
 - ../model/rnn2d.yml
 - ../dataset/electricity.yml
 _custom_imports_:
-- forecaster.network
-- forecaster.dataset
-- forecaster.model
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
 
 data:
   raw_label: False
@@ -12,7 +12,7 @@ data:
   horizon: 6
   normalize: 3
 
-model:
+runner:
   type: ts
   task: regression
   optimizer: Adam

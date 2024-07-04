@@ -5,7 +5,7 @@ data:
   horizon: 6
   train_ratio: 0.7
   test_ratio: 0.1
-model:
+runner:
   type: ts
   task: regression
   optimizer: Adam

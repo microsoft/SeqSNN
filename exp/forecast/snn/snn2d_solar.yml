@@ -2,11 +2,11 @@ _base_:
 - ../model/snn2d.yml
 - ../dataset/solar.yml
 _custom_imports_:
-- forecaster.network
-- forecaster.dataset
-- forecaster.model
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
 
-model:
+runner:
   type: ts
   task: regression
   optimizer: Adam

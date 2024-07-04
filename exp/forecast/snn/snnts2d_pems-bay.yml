@@ -2,15 +2,15 @@ _base_:
 - ../model/snn2d.yml
 - ../dataset/pems-bay.yml
 _custom_imports_:
-- forecaster.network
-- forecaster.dataset
-- forecaster.model
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
 
 data:
   raw_label: False
   horizon: 6
 
-model:
+runner:
   type: snnts
   batch_size: 128
   early_stop: 20

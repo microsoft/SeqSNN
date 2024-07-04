@@ -2,16 +2,16 @@ _base_:
 - ../model/itransformer.yml
 - ../dataset/pems-bay.yml
 _custom_imports_:
-- forecaster.network
-- forecaster.dataset
-- forecaster.model
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
 
 data:
   raw_label: False
   window: 12
   horizon: 48
 
-model:
+runner:
   type: vsts
   batch_size: 32
   aggregate: False

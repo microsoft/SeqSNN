@@ -1,9 +1,9 @@
 _base_:
 - ../dataset/solar.yml
 _custom_imports_:
-- forecaster.network
-- forecaster.dataset
-- forecaster.model
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
 
 data:
   raw_label: False
@@ -11,7 +11,7 @@ data:
   horizon: 24
   normalize: 1
 
-model:
+runner:
   type: ts
   task: regression
   optimizer: Adam

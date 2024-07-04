@@ -2,9 +2,9 @@ _base_:
 - ../model/itransformer.yml
 - ../dataset/electricity.yml
 _custom_imports_:
-- forecaster.network
-- forecaster.dataset
-- forecaster.model
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
 
 
 data:
@@ -13,7 +13,7 @@ data:
   horizon: 24
   
 
-model:
+runner:
   type: vsts
   batch_size: 32
   aggregate: False
@@ -34,7 +34,7 @@ model:
 network:
   type: iTransformer
   d_ff: 1024
-  d_model: 256
+  d_runner: 256
   e_layers: 2
 
 runtime:

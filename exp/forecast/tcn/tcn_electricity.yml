@@ -2,16 +2,16 @@ _base_:
 - ../model/tcn.yml
 - ../dataset/electricity.yml
 _custom_imports_:
-- forecaster.network
-- forecaster.dataset
-- forecaster.model
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
 
 data:
   type: TSMSDataset
   raw_label: False
   horizon: 96
 
-model:
+runner:
   type: ts
   task: regression
   optimizer: Adam

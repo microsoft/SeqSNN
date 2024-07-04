@@ -2,9 +2,9 @@ _base_:
 - ../model/snn2d.yml
 - ../dataset/metr-la.yml
 _custom_imports_:
-- forecaster.network
-- forecaster.dataset
-- forecaster.model
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
 
 data:
   type: TSMSDataset
@@ -13,7 +13,7 @@ data:
   horizon: 24
   train_ratio: 0.7
   test_ratio: 0.1
-model:
+runner:
   type: ts
   task: regression
   optimizer: Adam

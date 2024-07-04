@@ -1,7 +1,7 @@
 _custom_imports_:
-- forecaster.network
-- forecaster.dataset
-- forecaster.model
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
 
 data:
   type: TSMSDataset
@@ -13,7 +13,7 @@ data:
   raw_label: False
   normalize: 3
 
-model:
+runner:
   type: ts
   task: regression
   optimizer: Adam

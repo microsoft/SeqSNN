@@ -2,9 +2,9 @@ _base_:
 - ../model/snn.yml
 - ../dataset/metr-la.yml
 _custom_imports_:
-- forecaster.network
-- forecaster.dataset
-- forecaster.model
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
 
 runtime: 
   output_dir: ./output/snn_metr-la
