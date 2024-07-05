@@ -49,7 +49,6 @@ class TemporalBlock(nn.Module):
 class TemporalConvNet(nn.Module):
     def __init__(
         self,
-        # num_channels: List[int],
         channel: int,
         num_levels: int,
         position_embedding: bool,
@@ -72,7 +71,6 @@ class TemporalConvNet(nn.Module):
         """
         super().__init__(self)
         layers = []
-        # num_levels = len(num_channels)
         num_channels = [channel] * num_levels
         for i in range(num_levels):
             dilation_size = dilation**i
@@ -115,11 +113,9 @@ class TemporalConvNet(nn.Module):
         return self.__hidden_size
 
 
-# @NETWORKS.register_module("tcn_layer")
 class TemporalConvNetLayer(nn.Module):
     def __init__(
         self,
-        # num_channels: List[int],
         num_levels: int,
         channel: int,
         dilation: int,

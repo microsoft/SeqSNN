@@ -214,10 +214,10 @@ class ITransformer(nn.Module):
         # self.projector = nn.Linear(d_model, pred_len, bias=True)
 
     def forecast(self, x_enc):
-        # FIXME: x_enc_mark, x_dec_mark are not used here because our data provider has already provided timestamp information
+        # FIXME: x_enc_mark, x_dec_mark in the original paper are not used here 
+        # because our data provider has already provided timestamp information
+        
         # Normalization from Non-stationary Transformer
-        # print(self.max_length)
-        # print("x_enc:", x_enc.size(), x_enc)
         means = x_enc.mean(1, keepdim=True).detach()
         x_enc = x_enc - means
         stdev = torch.sqrt(torch.var(x_enc, dim=1, keepdim=True, unbiased=False) + 1e-5)
@@ -231,20 +231,11 @@ class ITransformer(nn.Module):
         # Embedding
         # B L N -> B N E                (B L N -> B L E in the vanilla Transformer)
         enc_out = self.enc_embedding(x_enc, None) # covariates (e.g timestamp) can be also embedded as tokens
-        # print("embedding:", enc_out.size())
         
         # B N E -> B N E                (B L E -> B L E in the vanilla Transformer)
         # the dimensions of embedded time series has been inverted, and then processed by native attn, layernorm and ffn modules
         enc_out, attns = self.encoder(enc_out, attn_mask=None)
 
-        # # B N E -> B N S -> B S N 
-        # dec_out = self.projector(enc_out).permute(0, 2, 1)[:, :, :N] # filter the covariates 
-        # # De-Normalization from Non-stationary Transformer
-        # dec_out = dec_out * (stdev[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
-        # dec_out = dec_out + (means[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
-        # print(dec_out.size())
-        # return enc_out, enc_out[:, -1, :] # B N E 
-        # print("enc_out:", enc_out.size())
         return enc_out, enc_out # B N E 
 
 
@@ -252,8 +243,6 @@ class ITransformer(nn.Module):
         enc_out = self.forecast(x_enc)
         return enc_out # remember to add a projection layer in Model.
     
-        # dec_out = self.forecast(x_enc, x_mark_enc, x_dec, x_mark_dec)
-        # return dec_out[:, -self.pred_len:, :]  # [B, L, D]
         
     @property
     def output_size(self):

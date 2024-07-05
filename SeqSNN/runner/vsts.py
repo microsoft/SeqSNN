@@ -37,6 +37,8 @@ class VariateSpecTS(TS):
             model_path: the path to existing model parameters for continued training or finetuning
             out_size: the output size for multi-class classification or multi-variant regression task.
             aggregate: whether to aggregate across whole sequence.
+            denormalize: whether to denormalize the output.
+            valid_variates: the number of valid variates to output. If None, output all variates.
         """
         super().__init__(
             **kwargs
@@ -46,33 +48,23 @@ class VariateSpecTS(TS):
 
     def forward(self, inputs: torch.Tensor):
         B, T, C = inputs.size() 
-        # print("inputs.shape ", inputs.shape)
         # introduced by itransformer
         if self.denormalize:
             means = inputs.mean(1, keepdim=True).detach()
             inputs = inputs - means
-            # std = inputs.std(1, keepdim=True, unbiased=False).detach()
             std = torch.sqrt(torch.var(inputs, dim=1, keepdim=True, unbiased=False) + 1e-5)
-            # inputs = inputs / (std + 1e-5)
             inputs /= std
         seq_out, emb_outs = self.network(inputs)  # [B, N, E], [B, N, E], C=N: number of variate, E:hidden_size
-        # print("seq_out.shape ", seq_out.shape)
-        # print("emb_out.shape ", emb_outs.shape)
         if self.aggregate:
             out = emb_outs
         else:
             out = seq_out
-        # print(out.size())
         out = out.reshape(B, C, -1) # [B, N, E], C=N
-        # print(out.size())
         preds = self.act_out(self.fc_out(out).squeeze(-1)).permute(0, 2, 1) # [B, O, N]
-        # print(preds.shape)
         if self.denormalize:
-            # preds = preds * std[:, 0:1, :].repeat(1, self.hyper_paras["out_size"], 1) + means[:, 0:1, :].repeat(1, self.hyper_paras["out_size"], 1)
             preds = preds * (std[:, 0, :].unsqueeze(1).repeat(1, self.hyper_paras["out_size"], 1))
             preds = preds + (means[:, 0, :].unsqueeze(1).repeat(1, self.hyper_paras["out_size"], 1))
         if self.valid_variates is not None:
             preds = preds[:, :, :self.valid_variates]
         preds = preds[:, -self.hyper_paras["out_size"]:, :]
-        # print("preds.shape ", preds.shape)
         return preds.reshape(B, -1) # [B, O*N], O*N = horizon * variate num

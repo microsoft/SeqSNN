@@ -40,7 +40,6 @@ class TSForecastDataset(Dataset):
 
     def _normalized(self, normalize):
         # normalized by the maximum value of entire matrix.
-
         if normalize == 0:
             self.dat = self.rawdat
 
@@ -225,74 +224,3 @@ class TSMSDataset(Dataset):
             y = label_data[index + self.window : index + self.window + self.horizon, :].reshape(-1)
         assert len(y) == self.num_classes, (len(y), self.num_classes)
         return X.astype(np.float32), y.astype(np.float32)
-
-
-@DATASETS.register_module()
-class InformerDataset(TSMSDataset):
-    def __init__(
-        self,
-        file: str,
-        window: int,
-        horizon: int,
-        train_ratio: float = 0.8,
-        test_ratio: float = 0.2,
-        normalize: int = 2,
-        last_label: bool = False,
-        raw_label: bool = False,
-        dataset_name: Optional[str] = None,
-    ):
-        self.window = window
-        self.horizon = horizon
-        if file.endswith(".txt"):
-            self.raw_data = np.loadtxt(open(file), delimiter=",").astype(np.float32)
-        elif file.endswith(".csv"):
-            self.raw_data = np.loadtxt(open(file), delimiter=",", skiprows=1, dtype=object)[:, 1:].astype(np.float32)
-            self.dates = pd.DataFrame(
-                np.loadtxt(open(file), delimiter=",", skiprows=1, dtype=object)[:, 0], columns=["date"]
-            )
-            self.dates["date"] = self.dates["date"].map(lambda x: pd.Timestamp(x))
-            self.dates = time_features(self.dates, freq="t")
-        elif file.endswith(".h5"):
-            self.raw_data = pd.read_hdf(file).reset_index().values[:, 1:].astype(np.float32)
-            self.dates = pd.DataFrame(pd.read_hdf(file).reset_index()["index"]).rename(columns={"index": "date"})
-            self.dates = time_features(self.dates, 0, freq="t")
-        self.dat = np.zeros(self.raw_data.shape, dtype=np.float32)
-        self.n, self.m = self.dat.shape
-        if (train_ratio + test_ratio) == 1 and dataset_name == "valid":
-            dataset_name = "test"
-        self.dataset_name = dataset_name
-        self.last_label = last_label
-        self.raw_label = raw_label
-        self._normalized(normalize)
-        self._split(train_ratio, test_ratio, self.dataset_name)
-
-    @property
-    def num_variables(self):
-        return self.raw_data.shape[1]
-
-    def __len__(self):
-        return self.length
-
-    @property
-    def max_seq_len(self):
-        return self.window
-
-    @property
-    def num_classes(self):
-        return self.horizon
-
-    def __getitem__(self, index):
-        index = index + self.start_idx
-        X = self.dat[index : index + self.window, :]
-        # add time features
-        X_mark = self.dates[index : index + self.window]
-
-        # if hasattr(self, "dates"):
-        #     X = np.concatenate([X, self.dates[index : index + self.window]], axis=1)
-        if self.last_label:
-            y = self.dat[index + self.window : index + self.window + self.horizon, -1]
-        else:
-            y = self.dat[index + self.window : index + self.window + self.horizon, :]
-        y_mark = self.dates[index + self.window : index + self.window + self.horizon]
-        assert len(y) == self.num_classes, (len(y), self.num_classes)
-        return X.astype(np.float32), y.astype(np.float32), X_mark.astype(np.float32), y_mark.astype(np.float32)

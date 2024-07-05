@@ -50,26 +50,19 @@ class SNNVariateSpecTS(TS):
         if self.denormalize:
             means = inputs.mean(1, keepdim=True).detach()
             inputs = inputs - means
-            # std = inputs.std(1, keepdim=True, unbiased=False).detach()
             std = torch.sqrt(torch.var(inputs, dim=1, keepdim=True, unbiased=False) + 1e-5)
-            # inputs = inputs / (std + 1e-5)
             inputs /= std
         seq_out, emb_outs = self.network(inputs)  # [B, C, H*Time Step], [B, C, H*Time Step]
         if self.aggregate:
             out = emb_outs
         else:
             out = seq_out
-        # print(out.size())
         out = out.reshape(B, C, -1) # [B, C, H*Time Step]
-        # print(out.size())
         preds = self.act_out(self.fc_out(out).squeeze(-1)).permute(0, 2, 1) # [B, O, N]
-        # print(preds)
         if self.denormalize:
-            # preds = preds * std[:, 0:1, :].repeat(1, self.hyper_paras["out_size"], 1) + means[:, 0:1, :].repeat(1, self.hyper_paras["out_size"], 1)
             preds = preds * (std[:, 0, :].unsqueeze(1).repeat(1, self.hyper_paras["out_size"], 1))
             preds = preds + (means[:, 0, :].unsqueeze(1).repeat(1, self.hyper_paras["out_size"], 1))
         if self.valid_variates is not None:
             preds = preds[:, :, :self.valid_variates]
         preds = preds[:, -self.hyper_paras["out_size"]:, :]
-        # print(preds.shape)
         return preds.reshape(B, -1) # [B, O*N], O*N = horizon * variate num

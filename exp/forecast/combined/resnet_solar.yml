@@ -1,7 +1,0 @@
-_base_:
-- ../model/resnet.yml
-- ../dataset/solar.yml
-_custom_imports_:
-- network
-- dataset
-- runner

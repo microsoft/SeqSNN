@@ -1,5 +1,4 @@
 _base_:
-- ../model/ispikformer.yml
 - ../dataset/electricity.yml
 _custom_imports_:
 - SeqSNN.network
@@ -14,10 +13,6 @@ data:
 
 runner:
   type: vsts
-  batch_size: 32
-  aggregate: False
-  out_size: 24
-  denormalize: True
   task: regression
   optimizer: Adam
   lr: 0.0001
@@ -25,9 +20,13 @@ runner:
   loss_fn: mse
   metrics: [r2, rrse]
   observe: loss
+  batch_size: 32
+  out_size: 24
+  aggregate: False
+  early_stop: 30
+  denormalize: True
   lower_is_better: True
   max_epoches: 1000
-  early_stop: 20
   valid_variates: 321
 
 network:
@@ -38,7 +37,3 @@ network:
   num_steps: 4
   heads: 8
   encoder_type: conv
-
-runtime:
-  seed: 42
-  output_dir: ./outputs/iSpikformer_horizon=24_electricity

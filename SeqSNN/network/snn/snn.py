@@ -28,7 +28,6 @@ class SNNCell(nn.Module):
         output_mems: bool = False,
     ):
         super().__init__()
-        # self.spike_grad = surrogate.fast_sigmoid(slope=grad_slope)
         self.spike_grad = surrogate.atan(alpha=2.0)
         self.input_size = input_size
         self.num_steps = num_steps
@@ -38,7 +37,6 @@ class SNNCell(nn.Module):
         self.linear = nn.Linear(input_size, output_size)
 
     def forward(self, inputs):
-        # print(inputs.size()) # BC, H or BC, H, T
         if inputs.size(-1) == self.input_size:
             # assume static spikes:
             cur = self.linear(inputs)
@@ -61,7 +59,6 @@ class SNNCell(nn.Module):
                 mem_rec.append(mem)
             spks = torch.stack(spk_rec, dim=-1)
             mems = torch.stack(mem_rec, dim=-1)
-            # print(torch.sum(spks).item(), torch.numel(spks), torch.sum(spks) / torch.numel(spks))
             return spks, mems
         else:
             for i_step in range(self.num_steps):
@@ -71,7 +68,6 @@ class SNNCell(nn.Module):
                     spk = self.lif(cur[:, :, i_step])
                 spk_rec.append(spk)
             spks = torch.stack(spk_rec, dim=-1)
-            # print(torch.sum(spks).item(), torch.numel(spks), torch.sum(spks) / torch.numel(spks))
             return spks
 
 
@@ -108,16 +104,13 @@ class TSSNN(nn.Module):
         self, 
         inputs: torch.Tensor,
     ):
-        # print(inputs.shape) # B, L, C
         for layer in self.net:
             utils.reset(layer)
         hiddens = self.encoder(inputs) # B, L, H
         bs, t, h = hiddens.size() # B, L, H
         for i in range(t):
             spks, mems = self.net(hiddens[:, i, :])
-        # print(mems.size()) # B, H, Time Step
         return spks.transpose(1, 2), spks[:, :, -1] # B * Time Step * H, B * H
-        # return mems.transpose(1, 2), mems[:, :, -1] # B * Time Step * H, B * H
 
     @property
     def output_size(self):
@@ -174,26 +167,19 @@ class TSSNN2D(nn.Module):
         self,
         inputs: torch.Tensor,
     ):
-        # print(inputs.size()) # inputs: B, L, C
         utils.reset(self.temporal_encoder)
         for layer in self.net:
             utils.reset(layer)
         h = self.temporal_encoder(inputs) # B, H_encoder, C, L
-        # B, H_encoder, C, L -> B, C, L, H_hidden -> B, H_hidden, C, L
         h = self.encoder(h.permute(0,2,3,1)).permute(0,3,1,2)
         if self.pe_type != "none":
-            # B, H, C, L -> H B L C' -> B H C' L
             h = self.pe(h.permute(1, 0, 3, 2)).permute(1, 0, 3, 2)
         bs, hidden_size, c_num, length = h.size()
         h = h.permute(0, 2, 3, 1).reshape(bs * c_num, length, hidden_size) # BC, L, H
-        # print(h.size()) # BC, L, H
         for i in range(length):
             spks, mems = self.net(h[:, i, :])
-        # print(spks.size()) # BC, H, Time Step
-        # print(mems.size()) # BC, H, Time Step
         spks = spks.reshape(bs, c_num * hidden_size, -1) # B, CH, Time Step
         mems = mems.reshape(bs, c_num * hidden_size, -1) # B, CH, Time Step
-        # return mems.transpose(1, 2), mems[:, :, -1] # B * Time Step * CH, B * CH
         return spks.transpose(1, 2), spks[:, :, -1] # B * Time Step * CH, B * CH
         
     @property
@@ -238,7 +224,6 @@ class ITSSNN2D(nn.Module):
         # L: seq_len;       S: pred_len;
         # C: number of variate (tokens), can also includes covariates
 
-        # print(inputs.size()) # inputs: B, L, C
         utils.reset(self.encoder)
         for layer in self.net:
             utils.reset(layer)
@@ -246,11 +231,8 @@ class ITSSNN2D(nn.Module):
         h = self.encoder(inputs) # B, H, C, L
         hidden_size = h.size(1)
         h = h.permute(0, 2, 3, 1).reshape(bs * c_num, length, hidden_size) # BC, L, H
-        # print(h.size()) # BC, L, H
         for i in range(length):
             spks, mems = self.net(h[:, i, :])
-        # print(spks.size()) # BC, H, Time Step
-        # print(mems.size()) # BC, H, Time Step
         spks = spks.reshape(bs, c_num * hidden_size, -1) # B, CH, Time Step
         mems = mems.reshape(bs, c_num * hidden_size, -1) # B, CH, Time Step
         spks = spks.reshape(bs, c_num, -1) # B, C, H*Time Step

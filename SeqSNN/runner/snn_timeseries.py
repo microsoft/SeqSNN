@@ -102,21 +102,8 @@ class SNN_TS(BaseRunner):
             self.fc_out = nn.Linear(network.output_size, out_size)
         else:
             self.fc_out = nn.Identity()
-        # self.fc_lif = snn.Leaky(beta=0.99, spike_grad=surrogate.fast_sigmoid(slope=25.), init_hidden=True, output=True)
-        # self.last = nn.Linear(out_size, out_size)
         
     def forward(self, inputs):
-        # seq_out, emb_outs = self.network(inputs)  # [B, T, H], [B, out_size])
-        # print(seq_out.size(), emb_outs.size())
-        # spks, mems = [], []
-        # for _ in range(seq_out.size(1)):
-        #     spk, mem = self.fc_lif(self.fc_out(seq_out[:, _, :]))
-        #     spks.append(spk)
-        #     mems.append(mem)
-        # preds = self.act_out(self.last(mems[-1]).squeeze(-1))
-        # return preds
-
-        # print(inputs.shape) # B, L, C
         seq_out, emb_outs = self.network(inputs)  # SNN: [B, Time Step, H], [B, H]
         
         if self.aggregate:

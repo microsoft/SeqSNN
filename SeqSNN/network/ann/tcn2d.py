@@ -35,7 +35,7 @@ class TemporalBlock2D(nn.Module):
         )
         self.downsample = nn.Conv2d(n_inputs, n_outputs, (1, 1)) if n_inputs != n_outputs else None
         self.relu = nn.LeakyReLU()
-        # self.init_weights()
+        self.init_weights()
 
     def init_weights(self):
         self.conv1.weight.data.normal_(0, 0.01)
@@ -44,14 +44,11 @@ class TemporalBlock2D(nn.Module):
             self.downsample.weight.data.normal_(0, 0.01)
 
     def forward(self, x):
-        # print("x.shape ", x.shape) # inputs: B, 1, C, L or B, H, C, L
         out = self.net(x)
-        # print("out.shape ", out.shape)
         if torch.isnan(out).any() or torch.isinf(out).any():
             print("illegal value in TemporalBlock2D")
         res = x if self.downsample is None else self.downsample(x)
         res = self.relu(out + res)
-        # print("res.shape ", res.shape)
         return res
 
 
@@ -59,7 +56,6 @@ class TemporalBlock2D(nn.Module):
 class TemporalConvNet2D(nn.Module):
     def __init__(
         self,
-        # num_channels: List[int],
         num_levels: int,
         channel: int,
         dilation: int,
@@ -113,11 +109,8 @@ class TemporalConvNet2D(nn.Module):
     def forward(self, inputs: torch.Tensor):
         if self._position_embedding:
             inputs = self.emb(inputs)
-        # print("inputs.shape", inputs.shape) # B, L, C
         inputs = inputs.unsqueeze(1).transpose(2, 3) 
-        # print("inputs.shape", inputs.shape) # B, 1, C, L
         hiddens = self.network(inputs) # B, 1, C, L
-        # print('====TCN2d network: ', hiddens.shape) # B, 1, C, L
         return hiddens, hiddens[:, :, :, -1].squeeze(1)
 
     @property

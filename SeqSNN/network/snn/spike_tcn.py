@@ -54,16 +54,13 @@ class SpikeTemporalBlock2D(nn.Module):
             self.downsample.weight.data.normal_(0, 0.01)
 
     def forward(self, x):
-        # print("x.shape ", x.shape) # inputs: B, H, C, L
         out1 = self.chomp1(self.bn1(self.conv1(x)))
-        # print("out1.shape ", out1.shape) # out1: B, H', C, L
         length = out1.size(-1)
         spk_rec1 = []
         for i in range(self.num_steps):
             spk = self.lif1(out1)
             spk_rec1.append(spk)
         spks1 = torch.stack(spk_rec1, dim=-1) # spks1: B, H, C, L, T
-        # print("spks1.shape ", spks1.shape)
         spks1 = spks1.mean(-1) # spks1: B, H, C, L
         
         out2 = self.chomp2(self.bn2(self.conv2(spks1)))
@@ -72,7 +69,6 @@ class SpikeTemporalBlock2D(nn.Module):
             spk = self.lif2(out2)
             spk_rec2.append(spk)
         spks2 = torch.stack(spk_rec2, dim=-1) # spks2: B, H, C, L, T
-        # print("spks2.shape ", spks2.shape)
         spks2 = spks2.mean(-1) # spks2: B, H, C, L
 
 
@@ -83,17 +79,14 @@ class SpikeTemporalBlock2D(nn.Module):
             res = x
         else:
             res = self.downsample(x)
-        # res = self.lif(spks2 + res)
         spk_rec3 = []
         for i in range(self.num_steps):
             spk = self.lif(spks2 + res)
-            # spk = self.lif(res)
             spk_rec3.append(spk)
             
         res = torch.stack(spk_rec3, dim=-1) # res: B, H, C, L, T
         res = res.mean(-1)
             
-        # res = torch.stack(spk_rec3, dim=-1).mean(-1) + spks2# res: B, H, C, L
         return res
 
 
@@ -128,7 +121,6 @@ class SpikeTemporalConvNet2D(nn.Module):
         self.pe_type = pe_type
         self.pe_mode = pe_mode
         self.num_pe_neuron = num_pe_neuron
-        # self.encoder = ConvEncoder(hidden_size)
         self.encoder = SpikeEncoder[self._snn_backend][encoder_type](hidden_size)
         
         self.num_steps = num_steps

@@ -4,9 +4,6 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-# print(torch.__version__)
-import sys
-sys.path.append("./forecaster")
 from spikingjelly.activation_based import surrogate, neuron, functional
 import numpy as np
 from ..base import NETWORKS
@@ -17,8 +14,6 @@ from ...module.spike_attention import Block
 tau = 2.0 # beta = 1 - 1/tau
 backend = "torch"
 detach_reset=True
-# common_thr = 1.0
-# attn_thr = common_thr / 4
 
 
 class DataEmbedding_inverted(nn.Module):
@@ -31,7 +26,6 @@ class DataEmbedding_inverted(nn.Module):
 
     def forward(self, x):
         # x: T B L C
-        # print("x.shape: ", x.shape)
         T,B,L,C = x.shape
         x = x.permute(0, 1, 3, 2).flatten(0,1) # TB C L
         x = self.value_embedding(x) # TB C H
@@ -88,17 +82,13 @@ class iSpikformer(nn.Module):
         functional.reset_net(self.emb)
         functional.reset_net(self.blocks)
         x = self.encoder(x) # B L C -> T B C L
-        # print(x.shape)
-        # x = x.repeat(tuple([self.T] + torch.ones(len(x.size()), dtype=int).tolist())) # T B L D
         
         x = x.transpose(2, 3) # T B L C
         
         x = self.emb(x)  # T B C H
         for i, blk in enumerate(self.blocks):
             x = blk(x) # T B C H
-        # print("x.shape: ", x.shape)
         out = x[-1, :, :, :]
-        # out = x.mean(0)
         return out, out # B C H, B C H
     
     @property

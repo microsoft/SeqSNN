@@ -2,7 +2,18 @@
 Code for ICML 2024 paper "Efficient and Effective Time-Series Forecasting with Spiking Neural Networks"(https://arxiv.org/pdf/2402.01533)
 
 # Installation
-`python setup.py install`
+To install SeqSNN in a new conda environment:
+```
+conda create -n SeqSNN python=[3.8, 3.9, 3.10]
+conda activate SeqSNN
+git clone https://github.com/microsoft/SeqSNN/
+cd SeqSNN
+pip install .
+```
+
+If you would like to make changes and run your own expeirments, use:
+
+`pip install -e .`
 
 ## Training
 Take the `iSpikformer` model as an example:
@@ -52,3 +63,6 @@ SeqSNN
 │
 ```
 You can change the path of data file in `exp/forecast/dataset/XXX.yml` configuration files.
+
+# Acknowledgement
+This repo is built upon (forecaster)[https://github.com/Arthur-Null/SRD], which is a general time-series forecasting library. We greatly thank @rk2900 and @Arthur-Null for their initial contribution. 

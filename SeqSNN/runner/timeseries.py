@@ -92,24 +92,17 @@ class TS(BaseRunner):
             self.out_ranges = np.concatenate(self.out_ranges)
         else:
             self.out_ranges = None
-        # print(out_size)
         if out_size is not None:
             self.fc_out = nn.Linear(network.output_size, out_size)
-            # print(network.output_size, out_size)
         else:
             self.fc_out = nn.Identity()
 
     def forward(self, inputs):
-        # print("inputs.shape ", inputs.shape)
         seq_out, emb_outs = self.network(inputs)
-        # print("seq_out.shape ", seq_out.shape)
-        # print("emb_out.shape ", emb_outs.shape)
         if self.aggregate:
             out = emb_outs
         else:
             out = seq_out
-        # print("out.shape ", out.shape)
         preds = self.fc_out(out)
-        # print("preds.shape ", preds.shape)
         preds = self.act_out(preds.squeeze(-1))
         return preds

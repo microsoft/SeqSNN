@@ -33,7 +33,6 @@ class SpikeRNNCell(nn.Module):
         # T, B, L, C'
         T, B, L, _ = x.shape
         x = x.flatten(0, 1) # TB, L, C'
-        # print(x.shape)
         x = self.linear(x)
         x = x.reshape(T, B, L, -1)
         x = self.lif(x) # T, B, L, C'
@@ -90,7 +89,6 @@ class SpikeRNN(nn.Module):
         self, 
         inputs: torch.Tensor,
     ):
-        # print(inputs.shape) # B, L, C
         functional.reset_net(self)
         hiddens = self.temporal_encoder(inputs) # T, B, C, L
         hiddens = hiddens.transpose(-2, -1) # T, B, L, C
@@ -144,26 +142,19 @@ class SpikeRNN2D(nn.Module):
         ])
 
         self.__output_size = hidden_size * input_size
-        # self.__output_size = hidden_size * num_steps
         
     def forward(
         self,
         inputs: torch.Tensor,
-    ):
-        # print(inputs.size()) # inputs: B, L, C
-        
+    ):  
         bs, length, c_num = inputs.size()
         h = self.encoder(inputs) # B, H, C, L
         hidden_size = h.size(1)
         h = h.permute(0, 2, 3, 1).reshape(bs * c_num, length, hidden_size) # BC, L, H
-        # print(h.size()) # BC, L, H
         for i in range(length):
             spks, mems = self.net(h[:, i, :])
-        # print(spks.size()) # BC, H, Time Step
-        # print(mems.size()) # BC, H, Time Step
         spks = spks.reshape(bs, c_num * hidden_size, -1) # B, CH, Time Step
         mems = mems.reshape(bs, c_num * hidden_size, -1) # B, CH, Time Step
-        # return mems.transpose(1, 2), mems[:, :, -1] # B * Time Step * CH, B * CH
         return spks.transpose(1, 2), spks[:, :, -1] # B * Time Step * CH, B * CH
         
     @property

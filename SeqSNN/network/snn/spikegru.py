@@ -25,7 +25,6 @@ class GRUCell(nn.Module):
         output_mems: bool = False,
     ):
         super().__init__()
-        # self.spike_grad = surrogate.fast_sigmoid(slope=grad_slope)
         self.spike_grad = surrogate.atan(alpha=2.0)
         self.input_size = input_size
         self.num_steps = num_steps
@@ -33,59 +32,33 @@ class GRUCell(nn.Module):
         self.beta = beta
         self.full_rec = output_mems
         self.lif = snn.Leaky(beta=self.beta, spike_grad=self.spike_grad, init_hidden=True, output=output_mems)
-        # self.linear = nn.Linear(input_size, output_size)
         self.linear_ih = nn.Linear(input_size, 3 * hidden_size)
         self.linear_hh = nn.Linear(hidden_size, 3 * hidden_size)
-        # self.surrogate_function1 = surrogate.ATan
         self.surrogate_function1 = sj_surrogate.ATan()
 
     def forward(self, inputs):
-        # print(inputs.size()) # BC, H or BC, H, T
         if inputs.size(-1) == self.input_size:
             # assume static spikes:
-            # cur = self.linear(inputs)
-            # static = True
             h = torch.zeros(size=[inputs.shape[0], self.hidden_size], dtype=torch.float, device=inputs.device)
-            # print(h.shape)
             y_ih = torch.split(self.linear_ih(inputs), self.hidden_size, dim=1)
             y_hh = torch.split(self.linear_hh(h), self.hidden_size, dim=1)
-            # print("y_ih[0].shape: ", y_ih[0].shape)
-            # print("y_ih[1].shape: ", y_ih[1].shape)
-            # print("y_hh[0].shape: ", y_hh[0].shape)
-            # print("y_hh[1].shape: ", y_hh[1].shape)
             r = self.surrogate_function1(y_ih[0] + y_hh[0])
-            # print("r.shape: ", r.shape)
             z = self.surrogate_function1(y_ih[1] + y_hh[1])
-            # print("z.shape: ", z.shape)
             n = self.surrogate_function1(y_ih[2] + r * y_hh[2])
-            # print("n.shape: ", n.shape)
             h = (1. - z) * n + z * h
             cur = h
             static = True
-            # print("cur.shape: ", cur.shape)
         elif inputs.size(-1) == self.num_steps and inputs.size(-2) == self.input_size:
-            # assume dynamic spikes:
-            # cur = self.linear(inputs.transpose(-1, -2)).transpose(-1, -2) # BC, H, T
-            # static = False
             inputs = inputs.transpose(-1, -2) # BC, T, H
             h = torch.zeros(size=[inputs.shape[0], self.hidden_size, self.num_steps], dtype=torch.float, device=inputs.device)
-            # print(h.shape)
             y_ih = torch.split(self.linear_ih(inputs).transpose(-1, -2), self.hidden_size, dim=1)
             y_hh = torch.split(self.linear_hh(h.transpose(-1, -2)).transpose(-1, -2), self.hidden_size, dim=1)
-            # print("y_ih[0].shape: ", y_ih[0].shape)
-            # print("y_ih[1].shape: ", y_ih[1].shape)
-            # print("y_hh[0].shape: ", y_hh[0].shape)
-            # print("y_hh[1].shape: ", y_hh[1].shape)
             r = self.surrogate_function1(y_ih[0] + y_hh[0])
-            # print("r.shape: ", r.shape)
             z = self.surrogate_function1(y_ih[1] + y_hh[1])
-            # print("z.shape: ", z.shape)
             n = self.surrogate_function1(y_ih[2] + r * y_hh[2])
-            # print("n.shape: ", n.shape)
             h = (1. - z) * n + z * h
             cur = h
             static = False
-            # print("cur.shape: ", cur.shape)
         else:
             raise ValueError(f"Input size mismatch! Got {inputs.size()} but expected (..., {self.input_size}, {self.num_steps}) or (..., {self.input_size})")
 
@@ -101,7 +74,6 @@ class GRUCell(nn.Module):
                 mem_rec.append(mem)
             spks = torch.stack(spk_rec, dim=-1)
             mems = torch.stack(mem_rec, dim=-1)
-            # print(torch.sum(spks).item(), torch.numel(spks), torch.sum(spks) / torch.numel(spks))
             return spks, mems
         else:
             for i_step in range(self.num_steps):
@@ -111,7 +83,6 @@ class GRUCell(nn.Module):
                     spk = self.lif(cur[:, :, i_step])
                 spk_rec.append(spk)
             spks = torch.stack(spk_rec, dim=-1)
-            # print(torch.sum(spks).item(), torch.numel(spks), torch.sum(spks) / torch.numel(spks))
             return spks
 
 class DeltaEncoder(nn.Module):
@@ -193,16 +164,13 @@ class TSSNNGRU(nn.Module):
         self, 
         inputs: torch.Tensor,
     ):
-        # print(inputs.shape) # B, L, C
         for layer in self.net:
             utils.reset(layer)
         hiddens = self.encoder(inputs)
         bs, t, h = hiddens.size() # B, L, H
         for i in range(t):
             spks, mems = self.net(hiddens[:, i, :])
-        # print(mems.size()) # B, H, Time Step
         return spks.transpose(1, 2), spks[:, :, -1] # B * Time Step * H, B * H
-        # return mems.transpose(1, 2), mems[:, :, -1] # B * Time Step * H, B * H
 
     @property
     def output_size(self):
@@ -241,13 +209,11 @@ class TSSNNGRU2D(nn.Module):
         ])
 
         self.__output_size = hidden_size * input_size
-        # self.__output_size = hidden_size * num_steps
         
     def forward(
         self,
         inputs: torch.Tensor,
     ):
-        # print(inputs.size()) # inputs: B, L, C
         utils.reset(self.encoder)
         for layer in self.net:
             utils.reset(layer)
@@ -255,14 +221,10 @@ class TSSNNGRU2D(nn.Module):
         h = self.encoder(inputs) # B, H, C, L
         hidden_size = h.size(1)
         h = h.permute(0, 2, 3, 1).reshape(bs * c_num, length, hidden_size) # BC, L, H
-        # print(h.size()) # BC, L, H
         for i in range(length):
             spks, mems = self.net(h[:, i, :])
-        # print(spks.size()) # BC, H, Time Step
-        # print(mems.size()) # BC, H, Time Step
         spks = spks.reshape(bs, c_num * hidden_size, -1) # B, CH, Time Step
         mems = mems.reshape(bs, c_num * hidden_size, -1) # B, CH, Time Step
-        # return mems.transpose(1, 2), mems[:, :, -1] # B * Time Step * CH, B * CH
         return spks.transpose(1, 2), spks[:, :, -1] # B * Time Step * CH, B * CH
         
     @property
@@ -302,7 +264,6 @@ class ITSSNNGRU2D(nn.Module):
         ])
 
         self.__output_size = hidden_size * num_steps
-        # self.__output_size = hidden_size
         
     def forward(
         self,
@@ -312,7 +273,6 @@ class ITSSNNGRU2D(nn.Module):
         # L: seq_len;       S: pred_len;
         # C: number of variate (tokens), can also includes covariates
 
-        # print(inputs.size()) # inputs: B, L, C
         utils.reset(self.encoder)
         for layer in self.net:
             utils.reset(layer)
@@ -320,15 +280,10 @@ class ITSSNNGRU2D(nn.Module):
         h = self.encoder(inputs) # B, H, C, L
         hidden_size = h.size(1)
         h = h.permute(0, 2, 3, 1).reshape(bs * c_num, length, hidden_size) # BC, L, H
-        # print(h.size()) # BC, L, H
         for i in range(length):
             spks, mems = self.net(h[:, i, :])
-        # print(spks.size()) # BC, H, Time Step
-        # print(mems.size()) # BC, H, Time Step
         spks = spks.reshape(bs, c_num * hidden_size, -1) # B, CH, Time Step
-        # mems = mems.reshape(bs, c_num * hidden_size, -1) # B, CH, Time Step
         spks = spks.reshape(bs, c_num, -1) # B, C, H*Time Step
-        # print("spks.shape: ", spks.shape)
         return spks, spks # [B, C, H*Time Step], [B, C, H*Time Step]
         
     @property

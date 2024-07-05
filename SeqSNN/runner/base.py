@@ -18,8 +18,6 @@ from utilsd.earlystop import EarlyStop, EarlyStopStatus
 from ..common.function import get_loss_fn, get_metric_fn, printt
 from ..common.utils import AverageMeter, GlobalTracker, to_torch
 
-# from thop import profile
-# import wandb
 
 class RUNNERS(metaclass=Registry, name="runner"):
     pass
@@ -200,17 +198,10 @@ class BaseRunner(nn.Module):
                 # forward_once data -> dict ["loss"]
                 pred = self(data)
 
-                # flops, params = profile(model=self, inputs=data)
-                # print('FLOPs = ' + str(flops/1000**3) + 'G')
-                # print('Params = ' + str(params/1000**2) + 'M')
-
                 if self.out_ranges is not None:
                     pred = pred[:, self.out_ranges]
                     label = label[:, self.out_ranges]
-                # print("label: \n", label)
-                # print("label.shape: \n", label.shape)
-                # print("pred: \n", pred)
-                # print("pred.shape: \n", pred.shape)
+
                 loss = self.loss_fn(label.squeeze(-1), pred.squeeze(-1))
                 self.optimizer.zero_grad()
                 loss.backward()
@@ -250,7 +241,6 @@ class BaseRunner(nn.Module):
                 with torch.no_grad():
                     eval_res = self.evaluate(validset, epoch)
                 value = eval_res[self.observe]
-                # wandb.log({"value": value})
                 es = self.early_stop.step(value)
                 if es == EarlyStopStatus.BEST:
                     best_score = value
@@ -276,8 +266,6 @@ class BaseRunner(nn.Module):
                     break
             self._checkpoint(epoch, {**best_res, "best_epoch": best_epoch})
 
-        # fit_freeup()
-        
         # release the space of train and valid dataset
         trainset.freeup()
         if validset is not None:

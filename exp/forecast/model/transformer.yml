@@ -1,9 +1,0 @@
-network:
-  type: TSTransformer
-  emb_dim: 0
-  emb_type: learn
-  hidden_size: 64
-  dropout: 0.
-  num_layers: 1
-  num_heads: 2
-  is_bidir: False

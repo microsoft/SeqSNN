@@ -49,7 +49,6 @@ class SSA(nn.Module):
         self.last_lif = neuron.LIFNode(tau=tau, step_mode='m', detach_reset=detach_reset, surrogate_function=surrogate.ATan(), v_threshold=common_thr, backend=backend)
 
     def forward(self, x):
-        # x = x.transpose(0, 1)
 
         T, B, L, D = x.shape
         x_for_qkv = x.flatten(0, 1) # TB L D
@@ -83,7 +82,6 @@ class SSA(nn.Module):
 class MLP(nn.Module):
     def __init__(self, length, tau, common_thr, in_features, hidden_features=None, out_features=None):
         super().__init__()
-        # self.length = length
         out_features = out_features or in_features
         hidden_features = hidden_features
         self.in_features = in_features
@@ -100,7 +98,6 @@ class MLP(nn.Module):
 
     def forward(self, x):
         T, B, L, D = x.shape
-        # x = x.flatten(0, 1) # TB L D
         x = x.transpose(0, 1).flatten(1, 2) # B TL D
         x = self.fc1(x) # B TL H
         x = self.bn1(x.transpose(-1, -2)).transpose(-1, -2).reshape(B, T, L, self.hidden_features).contiguous() # B T L H
@@ -188,7 +185,6 @@ class SpikformerCPG(nn.Module):
 
         for i, blk in enumerate(self.blocks):
             x = blk(x) # T B L D
-        # print("x.shape: ", x.shape)
         out = x.mean(0)
         return out, out.mean(dim=1) # B L D, B D
     

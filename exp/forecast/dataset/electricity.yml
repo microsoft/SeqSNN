@@ -7,6 +7,7 @@ data:
   test_ratio: 0.2
   normalize: 3
   raw_label: False
+
 runner:
   type: ts
   task: regression
@@ -21,6 +22,7 @@ runner:
   early_stop: 30
   batch_size: 128
   aggregate: True
+  
 runtime:
   seed: 42
   use_cuda: true

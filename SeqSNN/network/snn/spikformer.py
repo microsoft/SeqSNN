@@ -110,7 +110,6 @@ class Spikformer(nn.Module):
 
         for i, blk in enumerate(self.blocks):
             x = blk(x) # T B L D
-        # print("x.shape: ", x.shape)
         out = x.mean(0)
         return out, out.mean(dim=1) # B L D, B D
     
