@@ -1,7 +1,0 @@
-_base_:
-- ../model/snn2d.yml
-- ../dataset/snn_metr-la.yml
-_custom_imports_:
-- SeqSNN.network
-- SeqSNN.dataset
-- SeqSNN.runner

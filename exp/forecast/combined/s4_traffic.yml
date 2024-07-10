@@ -1,7 +1,0 @@
-_base_:
-- ../model/s4.yml
-- ../dataset/pems-bay.yml
-_custom_imports_:
-- SeqSNN.network
-- SeqSNN.dataset
-- SeqSNN.runner

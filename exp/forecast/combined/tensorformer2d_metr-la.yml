@@ -1,7 +1,0 @@
-_base_:
-- ../model/tensorformer2d.yml
-- ../dataset/metr-la.yml
-_custom_imports_:
-- selfsuperviser.network
-- selfsuperviser.dataset
-- selfsuperviser.runner
