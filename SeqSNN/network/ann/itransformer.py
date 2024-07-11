@@ -164,45 +164,69 @@ class Encoder(nn.Module):
 @NETWORKS.register_module("iTransformer")
 class ITransformer(nn.Module):
     """
-    Code copied and modified from the work of ITransformer:
+    Code copied and modified from the work of ITransformer[1]:
     Paper link: https://arxiv.org/abs/2310.06625
     Original Github repo: https://github.com/thuml/iTransformer
+    
+    [1] Liu, Yong, et al. "iTransformer: Inverted Transformers
+    Are Effective for Time Series Forecasting." The Twelfth 
+    International Conference on Learning Representations.
     """
 
     def __init__(
         self, 
-        output_attention: bool = False, # whether to output attention in encoder
-        factor: int = 1, # atten factor
-        embed: str = "fixed", # type of embedding, options: [timeF, fixed, learned]
-        freq: str = "h", # frequency of time series, options: [s, t, h, d, b, w, m]
-        e_layers: int = 2, # number of encoder layers
-        d_ff: int = 2048, # dimension of feedforward network
-        d_model: int = 512, # hidden size
-        dropout: float = 0.1, # dropout rate
-        max_length: int = 100, # "seq_len" in the original code
-        n_heads: int = 8, # number of heads
-        activation: str = "gelu", # activation function
-        class_strategy: str = "projection", # projection/average/cls_token, unused in the original repo
+        output_attention: bool = False,
+        factor: int = 1,
+        embed: str = "fixed",
+        freq: str = "h",
+        e_layers: int = 2,
+        d_ff: int = 2048,
+        d_model: int = 512,
+        dropout: float = 0.1,
+        max_length: int = 100,
+        n_heads: int = 8,
+        activation: str = "gelu",
+        class_strategy: str = "projection",
         input_size: Optional[int] = None,
         weight_file: Optional[Path] = None,
     ):
+        """
+        Initialize the ITransformer model.
+
+        Args:
+            output_attention (bool, optional): Whether to output attention in the encoder. Defaults to False.
+            factor (int, optional): Attention factor. Defaults to 1.
+            embed (str, optional): Type of embedding. Options: [timeF, fixed, learned]. 
+                Unused in our implementation. Defaults to "fixed".
+            freq (str, optional): Frequency of time series. Options: [s, t, h, d, b, w, m]. 
+                Unused in our implementation. Defaults to "h".
+            e_layers (int, optional): Number of encoder layers. Defaults to 2.
+            d_ff (int, optional): Dimension of the feedforward network. Defaults to 2048.
+            d_model (int, optional): Hidden size. Defaults to 512.
+            dropout (float, optional): Dropout rate. Defaults to 0.1.
+            max_length (int, optional): Maximum length of the sequence. Defaults to 100.
+            n_heads (int, optional): Number of attention heads. Defaults to 8.
+            activation (str, optional): Activation function. Defaults to "gelu".
+            class_strategy (str, optional): Class strategy. Options: [projection, average, cls_token]. 
+                Unused in the original repository. Defaults to "projection".
+            input_size (Optional[int], optional): Size of the input. Defaults to None.
+            weight_file (Optional[Path], optional): Path to the weight file. Defaults to None. 
+        """
         super(ITransformer, self).__init__()
         self.input_size = input_size
         self.max_length = max_length
-        # self.pred_len = configs.pred_len
         self.output_attention = output_attention
-        # Embedding
-        self.enc_embedding = DataEmbedding_inverted(max_length, d_model, embed, freq,
-                                                    dropout)
+        self.enc_embedding = DataEmbedding_inverted(max_length, d_model, embed, freq, dropout)
         self.class_strategy = class_strategy
         self.d_model = d_model
-        # Encoder-only architecture
         self.encoder = Encoder(
             [
                 EncoderLayer(
                     AttentionLayer(
-                        FullAttention(False, factor, attention_dropout=dropout,
-                                      output_attention=output_attention), d_model, n_heads),
+                        FullAttention(False, factor, attention_dropout=dropout, output_attention=output_attention),
+                        d_model,
+                        n_heads
+                    ),
                     d_model,
                     d_ff,
                     dropout=dropout,
@@ -211,7 +235,6 @@ class ITransformer(nn.Module):
             ],
             norm_layer=torch.nn.LayerNorm(d_model)
         )
-        # self.projector = nn.Linear(d_model, pred_len, bias=True)
 
     def forecast(self, x_enc):
         # FIXME: x_enc_mark, x_dec_mark in the original paper are not used here 

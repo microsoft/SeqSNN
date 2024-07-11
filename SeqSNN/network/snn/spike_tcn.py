@@ -152,20 +152,16 @@ class SpikeTemporalConvNet2D(nn.Module):
             self.__output_size = input_size
 
     def forward(self, inputs: torch.Tensor):
-        # print("inputs.shape ", inputs.shape) # inputs: B, L, C
         B, L, C = inputs.size()
         utils.reset(self.encoder)
         for layer in self.network:
             utils.reset(layer)
 
         inputs = self.encoder(inputs) # B, H, C, L
-        # print("inputs.shape ", inputs.shape) # B, H, C, L
         if self.pe_type != "none":
             # B, H, C, L -> H B L C' -> B H C' L
             inputs = self.pe(inputs.permute(1, 0, 3, 2)).permute(1, 0, 3, 2)
-        # print("inputs.shape ", inputs.shape) # B, H, C', L
         spks = self.network(inputs)
-        # print("spks.shape: ", spks.shape)  # B, 1, C', L
         spks = spks.squeeze(1) # B, C', L
         return spks, spks[:, :, -1] # [B, C', L], [B, C']
 
