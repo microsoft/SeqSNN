@@ -5,10 +5,13 @@ from utilsd.config import PythonConfig, RegistryConfig, RuntimeConfig, configcla
 from SeqSNN.dataset import DATASETS
 from SeqSNN.runner import RUNNERS
 from SeqSNN.network import NETWORKS
+
 # import wandb
 
 import warnings
-warnings.filterwarnings('ignore')
+
+warnings.filterwarnings("ignore")
+
 
 @configclass
 class SeqSNNConfig(PythonConfig):
@@ -24,7 +27,9 @@ def run_train(config):
     trainset = config.data.build(dataset_name="train")
     validset = config.data.build(dataset_name="valid")
     testset = config.data.build(dataset_name="test")
-    network = config.network.build(input_size=trainset.num_variables, max_length=trainset.max_seq_len)
+    network = config.network.build(
+        input_size=trainset.num_variables, max_length=trainset.max_seq_len
+    )
     runner = config.runner.build(
         network=network,
         output_dir=get_output_dir(),

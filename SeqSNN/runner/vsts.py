@@ -1,11 +1,8 @@
-from typing import List, Tuple, Optional, Union
-from pathlib import Path
-import numpy as np
+from typing import Optional
 
 import torch
-import torch.nn as nn
 
-from .base import RUNNERS, BaseRunner
+from .base import RUNNERS
 from .timeseries import TS
 
 
@@ -40,31 +37,37 @@ class VariateSpecTS(TS):
             denormalize: whether to denormalize the output.
             valid_variates: the number of valid variates to output. If None, output all variates.
         """
-        super().__init__(
-            **kwargs
-        )
+        super().__init__(**kwargs)
         self.denormalize = denormalize
         self.valid_variates = valid_variates
 
     def forward(self, inputs: torch.Tensor):
-        B, T, C = inputs.size() 
+        B, _, C = inputs.size()
         # introduced by itransformer
         if self.denormalize:
             means = inputs.mean(1, keepdim=True).detach()
             inputs = inputs - means
-            std = torch.sqrt(torch.var(inputs, dim=1, keepdim=True, unbiased=False) + 1e-5)
+            std = torch.sqrt(
+                torch.var(inputs, dim=1, keepdim=True, unbiased=False) + 1e-5
+            )
             inputs /= std
-        seq_out, emb_outs = self.network(inputs)  # [B, N, E], [B, N, E], C=N: number of variate, E:hidden_size
+        seq_out, emb_outs = self.network(
+            inputs
+        )  # [B, N, E], [B, N, E], C=N: number of variate, E:hidden_size
         if self.aggregate:
             out = emb_outs
         else:
             out = seq_out
-        out = out.reshape(B, C, -1) # [B, N, E], C=N
-        preds = self.act_out(self.fc_out(out).squeeze(-1)).permute(0, 2, 1) # [B, O, N]
+        out = out.reshape(B, C, -1)  # [B, N, E], C=N
+        preds = self.act_out(self.fc_out(out).squeeze(-1)).permute(0, 2, 1)  # [B, O, N]
         if self.denormalize:
-            preds = preds * (std[:, 0, :].unsqueeze(1).repeat(1, self.hyper_paras["out_size"], 1))
-            preds = preds + (means[:, 0, :].unsqueeze(1).repeat(1, self.hyper_paras["out_size"], 1))
+            preds = preds * (
+                std[:, 0, :].unsqueeze(1).repeat(1, self.hyper_paras["out_size"], 1)
+            )
+            preds = preds + (
+                means[:, 0, :].unsqueeze(1).repeat(1, self.hyper_paras["out_size"], 1)
+            )
         if self.valid_variates is not None:
-            preds = preds[:, :, :self.valid_variates]
-        preds = preds[:, -self.hyper_paras["out_size"]:, :]
-        return preds.reshape(B, -1) # [B, O*N], O*N = horizon * variate num
+            preds = preds[:, :, : self.valid_variates]
+        preds = preds[:, -self.hyper_paras["out_size"] :, :]
+        return preds.reshape(B, -1)  # [B, O*N], O*N = horizon * variate num

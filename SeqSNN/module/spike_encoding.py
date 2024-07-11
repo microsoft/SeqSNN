@@ -11,5 +11,5 @@ SpikeEncoder = {
         "repeat": sj.encoder.RepeatEncoder,
         "conv": sj.encoder.ConvEncoder,
         "delta": sj.encoder.DeltaEncoder,
-    }
+    },
 }

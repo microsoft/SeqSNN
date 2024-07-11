@@ -54,7 +54,9 @@ class Normalizer(object):
             if self.max_val is None:
                 self.max_val = df.max()
                 self.min_val = df.min()
-            return (df - self.min_val) / (self.max_val - self.min_val + np.finfo(float).eps)
+            return (df - self.min_val) / (
+                self.max_val - self.min_val + np.finfo(float).eps
+            )
 
         elif self.norm_type == "per_sample_std":
             grouped = df.groupby(by=df.index)
@@ -63,7 +65,9 @@ class Normalizer(object):
         elif self.norm_type == "per_sample_minmax":
             grouped = df.groupby(by=df.index)
             min_vals = grouped.transform("min")
-            return (df - min_vals) / (grouped.transform("max") - min_vals + np.finfo(float).eps)
+            return (df - min_vals) / (
+                grouped.transform("max") - min_vals + np.finfo(float).eps
+            )
 
         else:
             raise (NameError(f'Normalize method "{self.norm_type}" not implemented'))
@@ -90,7 +94,7 @@ class TSDataset(Dataset):
         name: str = "Heartbeat",
         max_seq_len: int = 0,
         dataset: str = "train",
-        dataset_split_ratio: float = 0.,
+        dataset_split_ratio: float = 0.0,
         task: str = "classification",
         normalizer: Optional[Normalizer] = None,
     ):
@@ -115,8 +119,8 @@ class TSDataset(Dataset):
             self._max_seq_len = max_seq_len
 
         original_dataset = dataset
-        if dataset == 'valid':
-            original_dataset = 'train'
+        if dataset == "valid":
+            original_dataset = "train"
 
         df, labels = load_data(
             f"{prefix}/{name}/{name}_{original_dataset.upper()}.ts",
@@ -152,28 +156,44 @@ class TSDataset(Dataset):
         for i in range(self.datasize):
             nowdf = df.loc[i]
             _seq_len = len(nowdf)
-            newdf = pd.DataFrame(index=[i for num in range(self._max_seq_len - _seq_len)], columns=nowdf.columns).fillna(0)
+            newdf = pd.DataFrame(
+                index=[i for num in range(self._max_seq_len - _seq_len)],
+                columns=nowdf.columns,
+            ).fillna(0)
             feature.append(pd.concat([newdf, nowdf]))
 
         self.feature = pd.concat(feature)
         self.label = labels_df
 
-        if original_dataset == 'train':
+        if original_dataset == "train":
             if dataset_split_ratio > 0:
                 data_index = np.arange(self.datasize)
                 label_np = self.label.values
                 if task == "classification":
-                    ind_x_train, ind_x_valid, _, _ = train_test_split(data_index, label_np, test_size=dataset_split_ratio, stratify=label_np, shuffle=True, random_state=42)
+                    ind_x_train, ind_x_valid, _, _ = train_test_split(
+                        data_index,
+                        label_np,
+                        test_size=dataset_split_ratio,
+                        stratify=label_np,
+                        shuffle=True,
+                        random_state=42,
+                    )
                 elif task == "regression":
-                    ind_x_train, ind_x_valid, _, _ = train_test_split(data_index, label_np, test_size=dataset_split_ratio, shuffle=True, random_state=42)
-                if dataset == 'train':
+                    ind_x_train, ind_x_valid, _, _ = train_test_split(
+                        data_index,
+                        label_np,
+                        test_size=dataset_split_ratio,
+                        shuffle=True,
+                        random_state=42,
+                    )
+                if dataset == "train":
                     self.datasize = len(ind_x_train)
                     self.feature = self.feature.loc[ind_x_train]
                     self.label = self.label.loc[ind_x_train]
                     rename_dict = {v: k for k, v in enumerate(ind_x_train)}
                     self.feature = self.feature.rename(index=rename_dict)
                     self.label = self.label.rename(index=rename_dict)
-                elif dataset == 'valid':
+                elif dataset == "valid":
                     self.datasize = len(ind_x_valid)
                     self.feature = self.feature.loc[ind_x_valid]
                     self.label = self.label.loc[ind_x_valid]
@@ -181,8 +201,8 @@ class TSDataset(Dataset):
                     self.feature = self.feature.rename(index=rename_dict)
                     self.label = self.label.rename(index=rename_dict)
             elif dataset_split_ratio == 0:
-                if dataset == 'valid':
-                    raise Exception('valid dataset must have dataset_split_ratio')
+                if dataset == "valid":
+                    raise Exception("valid dataset must have dataset_split_ratio")
 
         if normalizer is not None:
             self.feature = normalizer.normalize(self.feature)

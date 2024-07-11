@@ -25,7 +25,9 @@ Obs = namedtuple(
 
 
 def pprint(*args):
-    time = "[" + str(datetime.datetime.utcnow() + datetime.timedelta(hours=8))[:19] + "] -"
+    time = (
+        "[" + str(datetime.datetime.utcnow() + datetime.timedelta(hours=8))[:19] + "] -"
+    )
     print(time, *args, flush=True)
 
 
@@ -80,7 +82,9 @@ class MovingAverage(object):
 
     def add(self, val):
         mask = np.isnan(val)
-        self.value[~mask] = (1 - self.decay) * self.value[~mask] + self.decay * val[~mask]
+        self.value[~mask] = (1 - self.decay) * self.value[~mask] + self.decay * val[
+            ~mask
+        ]
 
 
 class AverageMeter(object):
@@ -120,14 +124,21 @@ class GlobalMeter(object):
             ys = ys.detach().squeeze(-1).cpu().numpy()
         if isinstance(preds, torch.Tensor):
             preds = preds.detach().squeeze(-1).cpu().numpy()
-        assert isinstance(ys, np.ndarray) and isinstance(preds, np.ndarray), "Please input as type of ndarray."
+        assert isinstance(ys, np.ndarray) and isinstance(
+            preds, np.ndarray
+        ), "Please input as type of ndarray."
         self.ys.append(ys)
         self.preds.append(preds)
 
     def concat(self):
         if isinstance(self.ys, list) and isinstance(self.preds, list):
-            self.ys = [np.expand_dims(ys, 0) if len(ys.shape) == 0 else ys for ys in self.ys]
-            self.preds = [np.expand_dims(preds, 0) if len(preds.shape) == 0 else preds for preds in self.preds]
+            self.ys = [
+                np.expand_dims(ys, 0) if len(ys.shape) == 0 else ys for ys in self.ys
+            ]
+            self.preds = [
+                np.expand_dims(preds, 0) if len(preds.shape) == 0 else preds
+                for preds in self.preds
+            ]
             self.ys = np.concatenate(self.ys, axis=0)
             self.preds = np.concatenate(self.preds, axis=0)
         else:
@@ -172,8 +183,12 @@ class AverageTracker(object):
         """{metric: cared_value}"""
         stat = {}
         if isinstance(metric, str) and isinstance(care, str):
-            assert (metric == "all") or (metric in self.metrics), "Not support %s metric." % metric
-            assert care in ["val", "avg", "sum", "count"], "Not support %s in performance meter." % care
+            assert (metric == "all") or (metric in self.metrics), (
+                "Not support %s metric." % metric
+            )
+            assert care in ["val", "avg", "sum", "count"], (
+                "Not support %s in performance meter." % care
+            )
             if metric == "all":
                 for m in self.metrics:
                     stat[m] = getattr(self.trackers[m], care)
@@ -223,7 +238,9 @@ class GlobalTracker(GlobalMeter):
     def performance(self, metric="all"):
         stat = {}
         if isinstance(metric, str):
-            assert (metric == "all") or (metric in self.metrics), "Not support %s metric." % metric
+            assert (metric == "all") or (metric in self.metrics), (
+                "Not support %s metric." % metric
+            )
             if metric == "all":
                 for m in self.metrics:
                     res = self.metric_fn[m](self.ys, self.preds)
@@ -244,7 +261,9 @@ class GlobalTracker(GlobalMeter):
     def snapshot(self, metric="all"):
         stat = {}
         if isinstance(metric, str):
-            assert (metric == "all") or (metric in self.metrics), "Not support %s metric." % metric
+            assert (metric == "all") or (metric in self.metrics), (
+                "Not support %s metric." % metric
+            )
             if metric == "all":
                 for m in self.metrics:
                     try:

@@ -10,11 +10,18 @@ from torch.nn.utils import weight_norm
 
 
 class TemporalBlock2D(nn.Module):
-    def __init__(self, n_inputs, n_outputs, kernel_size, stride, dilation, padding, dropout=0.2):
+    def __init__(
+        self, n_inputs, n_outputs, kernel_size, stride, dilation, padding, dropout=0.2
+    ):
         super(TemporalBlock2D, self).__init__()
         self.conv1 = weight_norm(
             nn.Conv2d(
-                n_inputs, n_outputs, (1, kernel_size), stride=stride, padding=(0, padding), dilation=(1, dilation)
+                n_inputs,
+                n_outputs,
+                (1, kernel_size),
+                stride=stride,
+                padding=(0, padding),
+                dilation=(1, dilation),
             )
         )
         self.chomp1 = Chomp2d(padding)
@@ -23,7 +30,12 @@ class TemporalBlock2D(nn.Module):
 
         self.conv2 = weight_norm(
             nn.Conv2d(
-                n_outputs, n_outputs, (1, kernel_size), stride=stride, padding=(0, padding), dilation=(1, dilation)
+                n_outputs,
+                n_outputs,
+                (1, kernel_size),
+                stride=stride,
+                padding=(0, padding),
+                dilation=(1, dilation),
             )
         )
         self.chomp2 = Chomp2d(padding)
@@ -31,9 +43,18 @@ class TemporalBlock2D(nn.Module):
         self.dropout2 = nn.Dropout(dropout)
 
         self.net = nn.Sequential(
-            self.conv1, self.chomp1, self.relu1, self.dropout1, self.conv2, self.chomp2, self.relu2, self.dropout2
+            self.conv1,
+            self.chomp1,
+            self.relu1,
+            self.dropout1,
+            self.conv2,
+            self.chomp2,
+            self.relu2,
+            self.dropout2,
         )
-        self.downsample = nn.Conv2d(n_inputs, n_outputs, (1, 1)) if n_inputs != n_outputs else None
+        self.downsample = (
+            nn.Conv2d(n_inputs, n_outputs, (1, 1)) if n_inputs != n_outputs else None
+        )
         self.relu = nn.LeakyReLU()
         self.init_weights()
 
@@ -101,7 +122,9 @@ class TemporalConvNet2D(nn.Module):
         self._position_embedding = position_embedding
 
         if position_embedding:
-            self.emb = PositionEmbedding(emb_type, input_size, max_length, dropout=dropout)
+            self.emb = PositionEmbedding(
+                emb_type, input_size, max_length, dropout=dropout
+            )
 
         if weight_file is not None:
             self.load_state_dict(torch.load(weight_file, map_location="cpu"))
@@ -109,8 +132,8 @@ class TemporalConvNet2D(nn.Module):
     def forward(self, inputs: torch.Tensor):
         if self._position_embedding:
             inputs = self.emb(inputs)
-        inputs = inputs.unsqueeze(1).transpose(2, 3) 
-        hiddens = self.network(inputs) # B, 1, C, L
+        inputs = inputs.unsqueeze(1).transpose(2, 3)
+        hiddens = self.network(inputs)  # B, 1, C, L
         return hiddens, hiddens[:, :, :, -1].squeeze(1)
 
     @property
@@ -176,7 +199,9 @@ class TemporalConvNet2D_Decoder(nn.Module):
         self._position_embedding = position_embedding
 
         if position_embedding:
-            self.emb = PositionEmbedding(emb_type, input_size, max_length, dropout=dropout)
+            self.emb = PositionEmbedding(
+                emb_type, input_size, max_length, dropout=dropout
+            )
 
         if weight_file is not None:
             self.load_state_dict(torch.load(weight_file, map_location="cpu"))
@@ -184,10 +209,10 @@ class TemporalConvNet2D_Decoder(nn.Module):
     def forward(self, inputs: torch.Tensor):
         if self._position_embedding:
             inputs = self.emb(inputs)
-        
+
         # inputs = inputs.unsqueeze(1).transpose(2, 3)
         hiddens = self.network(inputs)  # batch, channel, spatial_dim, T
-        return hiddens.squeeze(1).transpose(1,2)
+        return hiddens.squeeze(1).transpose(1, 2)
 
 
 # @NETWORKS.register_module("tcn_layer")
@@ -239,7 +264,9 @@ class TemporalConvNetLayer(nn.Module):
         self._position_embedding = position_embedding
 
         if position_embedding:
-            self.emb = PositionEmbedding(emb_type, input_size, max_length, dropout=dropout)
+            self.emb = PositionEmbedding(
+                emb_type, input_size, max_length, dropout=dropout
+            )
 
         if weight_file is not None:
             self.load_state_dict(torch.load(weight_file, map_location="cpu"))
@@ -247,7 +274,9 @@ class TemporalConvNetLayer(nn.Module):
     def forward(self, inputs: torch.Tensor):
         if self._position_embedding:
             inputs = self.emb(inputs)
-        hiddens = self.network(inputs.transpose(1, 2)).transpose(1, 2)  # batch, channel, dim, T
+        hiddens = self.network(inputs.transpose(1, 2)).transpose(
+            1, 2
+        )  # batch, channel, dim, T
         return hiddens, hiddens[:, -1, :]
 
     @property

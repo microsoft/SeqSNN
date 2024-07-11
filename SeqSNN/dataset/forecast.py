@@ -1,6 +1,6 @@
-from torch.utils.data import Dataset
 from typing import Optional
 
+from torch.utils.data import Dataset
 import pandas as pd
 from utilsd.config import Registry
 

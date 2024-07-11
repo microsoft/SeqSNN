@@ -1,7 +1,6 @@
 import torch.nn as nn
 
 
-
 class Chomp1d(nn.Module):
     def __init__(self, chomp_size):
         super(Chomp1d, self).__init__()

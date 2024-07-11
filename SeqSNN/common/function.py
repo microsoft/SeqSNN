@@ -51,7 +51,7 @@ def z_score_mask(ser, mask):
 # loss and metric functions
 
 
-class K(object):
+class K:
     """backend kernel"""
 
     @staticmethod
@@ -127,9 +127,9 @@ class K(object):
             return np.minimum(x, y)
         if isinstance(x, torch.Tensor) and isinstance(y, torch.Tensor):
             return torch.max(x, y)
-        elif isinstance(x, torch.Tensor):
+        if isinstance(x, torch.Tensor):
             return torch.clamp(x, max=y)
-        elif isinstance(y, torch.Tensor):
+        if isinstance(y, torch.Tensor):
             return torch.clamp(y, max=x)
         raise NotImplementedError("unsupported data type %s" % type(x))
 
@@ -211,19 +211,18 @@ class K(object):
         if isinstance(y, torch.Tensor):
             loss = torch.nn.NLLLoss(reduction="mean" if reduce else "none")
             return loss(p, y)
-        else:
-            p = np.exp(p)
-            p = np.transpose(p, (0, 2, 1))
-            p = p.reshape(-1, p.shape[-1])
-            y = y.reshape(-1)
-            return log_loss(y, p)
+        p = np.exp(p)
+        p = np.transpose(p, (0, 2, 1))
+        p = p.reshape(-1, p.shape[-1])
+        y = y.reshape(-1)
+        return log_loss(y, p)
 
     @staticmethod
     @njit(parallel=True, fastmath=True)
     def mauc(y, p):
         aucs = 0
         ratios = 0
-        n, m = y.shape
+        _, m = y.shape
         for t in prange(m):
             auc, ratio = fast_auc(y[:, t], p[:, t])
             aucs += auc
@@ -236,7 +235,7 @@ class K(object):
     def dauc(y, p):
         aucs = 0
         ratios = 0
-        n, m = y.shape
+        n, _ = y.shape
         for i in prange(n):
             auc, ratio = fast_auc(y[i, :], p[i, :])
             aucs += auc
@@ -248,7 +247,7 @@ class K(object):
     def mauprc(y, p):
         aucs = 0
         ratios = 0
-        n, m = y.shape
+        _, m = y.shape
         for t in prange(m):
             auc, ratio = fast_auprc(y[:, t], p[:, t])
             aucs += auc
@@ -456,20 +455,22 @@ def single_mae(y_true, y_pred):
     if isinstance(y_true, np.ndarray):
         loss = np.abs(y_true - y_pred)
         return np.nanmean(loss)
-    else:
-        loss = (y_true - y_pred).abs()
-        return loss.mean()
+    loss = (y_true - y_pred).abs()
+    return loss.mean()
 
 
 def rrse(y_true, y_pred):
     if isinstance(y_true, np.ndarray):
         y_bar = y_true.mean(axis=0)
-        loss = np.sqrt(((y_pred - y_true) ** 2).sum()) / np.sqrt(((y_true - y_bar) ** 2).sum())
+        loss = np.sqrt(((y_pred - y_true) ** 2).sum()) / np.sqrt(
+            ((y_true - y_bar) ** 2).sum()
+        )
         return np.nanmean(loss)
-    else:
-        y_bar = y_true.mean(dim=0)
-        loss = torch.sqrt(((y_pred - y_true) ** 2).sum()) / torch.sqrt(((y_true - y_bar) ** 2).sum())
-        return loss.mean()
+    y_bar = y_true.mean(dim=0)
+    loss = torch.sqrt(((y_pred - y_true) ** 2).sum()) / torch.sqrt(
+        ((y_true - y_bar) ** 2).sum()
+    )
+    return loss.mean()
 
 
 def mape(y_true, y_pred, log=False):
@@ -504,18 +505,13 @@ def single_mse(y_true, y_pred):
     if isinstance(y_true, np.ndarray):
         loss = (y_true - y_pred) ** 2
         return np.nanmean(loss)
-    else:
-        mask = ~torch.isnan(y_true)
-        y_pred = torch.masked_select(y_pred, mask)
-        y_true = torch.masked_select(y_true, mask)
-        loss = (y_true - y_pred) ** 2
-        # loss = loss.reshape(-1)
-        # mask = torch.logical_not(torch.isnan(loss))
-        # loss = torch.masked_select(loss, mask)
-        # print(len(loss))
-        loss = loss.mean()
+    mask = ~torch.isnan(y_true)
+    y_pred = torch.masked_select(y_pred, mask)
+    y_true = torch.masked_select(y_true, mask)
+    loss = (y_true - y_pred) ** 2
+    loss = loss.mean()
 
-        return loss
+    return loss
 
 
 def bce(y_true, y_pred, reduce=True):
@@ -590,7 +586,7 @@ def get_metric_fn(eval_metric):
         return single_mse
     if eval_metric == "mae":
         return single_mae
-    if eval_metric == "rse" or eval_metric == "rrse":
+    if eval_metric in ["rse", "rrse"]:
         return rrse
     # return function by name
     # if eval_metric == 'mape_log':

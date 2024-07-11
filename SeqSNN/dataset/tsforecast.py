@@ -2,10 +2,10 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-
-from SeqSNN.dataset import DATASETS
-from .utils import time_features
 from torch.utils.data import Dataset
+
+from .forecast import DATASETS
+from .utils import time_features
 
 
 @DATASETS.register_module()
@@ -26,9 +26,13 @@ class TSForecastDataset(Dataset):
         if file.endswith(".txt"):
             self.raw_data = np.loadtxt(open(file), delimiter=",").astype(np.float32)
         elif file.endswith(".csv"):
-            self.raw_data = np.loadtxt(open(file), delimiter=",", skiprows=1, dtype=object)[:, 1:].astype(np.float32)
+            self.raw_data = np.loadtxt(
+                open(file), delimiter=",", skiprows=1, dtype=object
+            )[:, 1:].astype(np.float32)
         elif file.endswith(".h5"):
-            self.raw_data = pd.read_hdf(file).reset_index().values[:, 1:].astype(np.float32)
+            self.raw_data = (
+                pd.read_hdf(file).reset_index().values[:, 1:].astype(np.float32)
+            )
         self.dat = np.zeros(self.raw_data.shape, dtype=np.float32)
         self.n, self.m = self.dat.shape
         if (train_ratio + test_ratio) == 1 and dataset_name == "valid":
@@ -49,7 +53,9 @@ class TSForecastDataset(Dataset):
         # normlized by the maximum value of each row(sensor).
         if normalize == 2:
             for i in range(self.m):
-                self.dat[:, i] = self.raw_data[:, i] / np.max(np.abs(self.raw_data[:, i]))
+                self.dat[:, i] = self.raw_data[:, i] / np.max(
+                    np.abs(self.raw_data[:, i])
+                )
 
     def _split(self, train_ratio, test_ratio, dataset_name):
         total_size = self.n - self.window - self.horizon + 1
@@ -124,15 +130,22 @@ class TSMSDataset(Dataset):
         if file.endswith(".txt"):
             self.raw_data = np.loadtxt(open(file), delimiter=",").astype(np.float32)
         elif file.endswith(".csv"):
-            self.raw_data = np.loadtxt(open(file), delimiter=",", skiprows=1, dtype=object)[:, 1:].astype(np.float32)
+            self.raw_data = np.loadtxt(
+                open(file), delimiter=",", skiprows=1, dtype=object
+            )[:, 1:].astype(np.float32)
             self.dates = pd.DataFrame(
-                np.loadtxt(open(file), delimiter=",", skiprows=1, dtype=object)[:, 0], columns=["date"]
+                np.loadtxt(open(file), delimiter=",", skiprows=1, dtype=object)[:, 0],
+                columns=["date"],
             )
             self.dates["date"] = self.dates["date"].map(lambda x: pd.Timestamp(x))
             self.dates = time_features(self.dates, freq="t")
         elif file.endswith(".h5"):
-            self.raw_data = pd.read_hdf(file).reset_index().values[:, 1:].astype(np.float32)
-            self.dates = pd.DataFrame(pd.read_hdf(file).reset_index()["index"]).rename(columns={"index": "date"})
+            self.raw_data = (
+                pd.read_hdf(file).reset_index().values[:, 1:].astype(np.float32)
+            )
+            self.dates = pd.DataFrame(pd.read_hdf(file).reset_index()["index"]).rename(
+                columns={"index": "date"}
+            )
             self.dates = time_features(self.dates, freq="t")
         self.dat = np.zeros(self.raw_data.shape, dtype=np.float32)
         self.n, self.m = self.dat.shape
@@ -156,10 +169,14 @@ class TSMSDataset(Dataset):
         # normlized by the maximum value of each row(sensor).
         if normalize == 2:
             for i in range(self.m):
-                self.dat[:, i] = self.raw_data[:, i] / np.max(np.abs(self.raw_data[:, i]))
-        
+                self.dat[:, i] = self.raw_data[:, i] / np.max(
+                    np.abs(self.raw_data[:, i])
+                )
+
         if normalize == 3:
-            self.dat = (self.raw_data - np.mean(self.raw_data))/(np.std(self.raw_data)+np.finfo(float).eps)
+            self.dat = (self.raw_data - np.mean(self.raw_data)) / (
+                np.std(self.raw_data) + np.finfo(float).eps
+            )
 
     def _split(self, train_ratio, test_ratio, dataset_name):
         total_size = self.n - self.window - self.horizon + 1
@@ -221,6 +238,8 @@ class TSMSDataset(Dataset):
         if self.last_label:
             y = label_data[index + self.window : index + self.window + self.horizon, -1]
         else:
-            y = label_data[index + self.window : index + self.window + self.horizon, :].reshape(-1)
+            y = label_data[
+                index + self.window : index + self.window + self.horizon, :
+            ].reshape(-1)
         assert len(y) == self.num_classes, (len(y), self.num_classes)
         return X.astype(np.float32), y.astype(np.float32)

@@ -1,8 +1,7 @@
 from typing import List, Tuple, Optional, Union
-from pathlib import Path
 import numpy as np
 
-import torch.nn as nn
+from torch import nn
 
 from .base import RUNNERS, BaseRunner
 
@@ -43,9 +42,7 @@ class TS(BaseRunner):
             "out_size": out_size,
             "aggregate": aggregate,
         }
-        super().__init__(
-            **kwargs
-        )
+        super().__init__(**kwargs)
 
     def _build_network(
         self,

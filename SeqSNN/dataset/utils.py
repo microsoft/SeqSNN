@@ -122,7 +122,9 @@ def load_from_tsfile_to_dataframe(
                     token_len = len(tokens)
 
                     if token_len == 1:
-                        raise TsFileParseException("problemname tag requires an associated value")
+                        raise TsFileParseException(
+                            "problemname tag requires an associated value"
+                        )
 
                     line[len("@problemname") + 1 :]
                     has_problem_name_tag = True
@@ -137,7 +139,9 @@ def load_from_tsfile_to_dataframe(
                     token_len = len(tokens)
 
                     if token_len != 2:
-                        raise TsFileParseException("timestamps tag requires an associated Boolean value")
+                        raise TsFileParseException(
+                            "timestamps tag requires an associated Boolean value"
+                        )
                     elif tokens[1] == "true":
                         timestamps = True
                     elif tokens[1] == "false":
@@ -155,7 +159,9 @@ def load_from_tsfile_to_dataframe(
                     tokens = line.split(" ")
                     token_len = len(tokens)
                     if token_len != 2:
-                        raise TsFileParseException("univariate tag requires an associated Boolean value")
+                        raise TsFileParseException(
+                            "univariate tag requires an associated Boolean value"
+                        )
                     elif tokens[1] == "true":
                         _ = True
                     elif tokens[1] == "false":
@@ -175,7 +181,9 @@ def load_from_tsfile_to_dataframe(
                     token_len = len(tokens)
 
                     if token_len == 1:
-                        raise TsFileParseException("classlabel tag requires an associated Boolean value")
+                        raise TsFileParseException(
+                            "classlabel tag requires an associated Boolean value"
+                        )
 
                     if tokens[1] == "true":
                         class_labels = True
@@ -186,7 +194,9 @@ def load_from_tsfile_to_dataframe(
 
                     # Check if we have any associated class values
                     if token_len == 2 and class_labels:
-                        raise TsFileParseException("if the classlabel tag is true then class values must be supplied")
+                        raise TsFileParseException(
+                            "if the classlabel tag is true then class values must be supplied"
+                        )
 
                     has_class_labels_tag = True
                     [token.strip() for token in tokens[2:]]
@@ -201,7 +211,9 @@ def load_from_tsfile_to_dataframe(
                     token_len = len(tokens)
 
                     if token_len == 1:
-                        raise TsFileParseException("targetlabel tag requires an associated Boolean value")
+                        raise TsFileParseException(
+                            "targetlabel tag requires an associated Boolean value"
+                        )
 
                     if tokens[1] == "true":
                         target_labels = True
@@ -216,7 +228,9 @@ def load_from_tsfile_to_dataframe(
                 # Check if this line contains the start of data
                 elif line.startswith("@data"):
                     if line != "@data":
-                        raise TsFileParseException("data tag should not have an associated value")
+                        raise TsFileParseException(
+                            "data tag should not have an associated value"
+                        )
 
                     if data_started and not metadata_started:
                         raise TsFileParseException("metadata must come before data")
@@ -240,8 +254,13 @@ def load_from_tsfile_to_dataframe(
                         or not has_class_labels_tag
                         or not has_data_tag
                     )
-                    if incomplete_regression_meta_data and incomplete_classification_meta_data:
-                        raise TsFileParseException("a full set of metadata has not been provided before the data")
+                    if (
+                        incomplete_regression_meta_data
+                        and incomplete_classification_meta_data
+                    ):
+                        raise TsFileParseException(
+                            "a full set of metadata has not been provided before the data"
+                        )
 
                     # Replace any missing values with the value specified
                     line = line.replace("?", replace_missing_vals_with)
@@ -267,13 +286,16 @@ def load_from_tsfile_to_dataframe(
                             # See if there is any more data to read in or if we should validate that read thus far
 
                             if char_num < line_len:
-
                                 # See if we have an empty dimension (i.e. no values)
                                 if line[char_num] == ":":
-                                    if len(instance_list) < (this_line_num_dimensions + 1):
+                                    if len(instance_list) < (
+                                        this_line_num_dimensions + 1
+                                    ):
                                         instance_list.append([])
 
-                                    instance_list[this_line_num_dimensions].append(pd.Series())
+                                    instance_list[this_line_num_dimensions].append(
+                                        pd.Series()
+                                    )
                                     this_line_num_dimensions += 1
 
                                     has_another_value = False
@@ -303,7 +325,6 @@ def load_from_tsfile_to_dataframe(
                                         values_for_dimension = []
 
                                     else:
-
                                         # Read in the data contained within the next tuple
 
                                         if line[char_num] != "(" and not target_labels:
@@ -318,11 +339,17 @@ def load_from_tsfile_to_dataframe(
                                         char_num += 1
                                         tuple_data = ""
 
-                                        while char_num < line_len and line[char_num] != ")":
+                                        while (
+                                            char_num < line_len
+                                            and line[char_num] != ")"
+                                        ):
                                             tuple_data += line[char_num]
                                             char_num += 1
 
-                                        if char_num >= line_len or line[char_num] != ")":
+                                        if (
+                                            char_num >= line_len
+                                            or line[char_num] != ")"
+                                        ):
                                             raise TsFileParseException(
                                                 "dimension "
                                                 + str(this_line_num_dimensions + 1)
@@ -335,7 +362,9 @@ def load_from_tsfile_to_dataframe(
 
                                         char_num += 1
 
-                                        while char_num < line_len and str.isspace(line[char_num]):
+                                        while char_num < line_len and str.isspace(
+                                            line[char_num]
+                                        ):
                                             char_num += 1
 
                                         # Check if there is another value or dimension to process after this tuple
@@ -399,7 +428,10 @@ def load_from_tsfile_to_dataframe(
                                             except ValueError:
                                                 timestamp_is_float = False
 
-                                        if not timestamp_is_int and not timestamp_is_float:
+                                        if (
+                                            not timestamp_is_int
+                                            and not timestamp_is_float
+                                        ):
                                             try:
                                                 timestamp = timestamp.strip()
                                                 timestamp_is_timestamp = True
@@ -469,17 +501,26 @@ def load_from_tsfile_to_dataframe(
 
                                         #  If this was our first tuple then we store the type of timestamp we had
 
-                                        if previous_timestamp_was_timestamp is None and timestamp_is_timestamp:
+                                        if (
+                                            previous_timestamp_was_timestamp is None
+                                            and timestamp_is_timestamp
+                                        ):
                                             previous_timestamp_was_timestamp = True
                                             previous_timestamp_was_int = False
                                             previous_timestamp_was_float = False
 
-                                        if previous_timestamp_was_int is None and timestamp_is_int:
+                                        if (
+                                            previous_timestamp_was_int is None
+                                            and timestamp_is_int
+                                        ):
                                             previous_timestamp_was_timestamp = False
                                             previous_timestamp_was_int = True
                                             previous_timestamp_was_float = False
 
-                                        if previous_timestamp_was_float is None and timestamp_is_float:
+                                        if (
+                                            previous_timestamp_was_float is None
+                                            and timestamp_is_float
+                                        ):
                                             previous_timestamp_was_timestamp = False
                                             previous_timestamp_was_int = False
                                             previous_timestamp_was_float = True
@@ -487,13 +528,21 @@ def load_from_tsfile_to_dataframe(
                                         # See if we should add the data for this dimension
 
                                         if not has_another_value:
-                                            if len(instance_list) < (this_line_num_dimensions + 1):
+                                            if len(instance_list) < (
+                                                this_line_num_dimensions + 1
+                                            ):
                                                 instance_list.append([])
 
                                             if timestamp_is_timestamp:
-                                                timestamps_for_dimension = pd.DatetimeIndex(timestamps_for_dimension)
+                                                timestamps_for_dimension = (
+                                                    pd.DatetimeIndex(
+                                                        timestamps_for_dimension
+                                                    )
+                                                )
 
-                                            instance_list[this_line_num_dimensions].append(
+                                            instance_list[
+                                                this_line_num_dimensions
+                                            ].append(
                                                 pd.Series(
                                                     index=timestamps_for_dimension,
                                                     data=values_for_dimension,
@@ -526,7 +575,9 @@ def load_from_tsfile_to_dataframe(
                                 if len(instance_list) < (this_line_num_dimensions + 1):
                                     instance_list.append([])
 
-                                instance_list[this_line_num_dimensions].append(pd.Series(dtype=np.float32))
+                                instance_list[this_line_num_dimensions].append(
+                                    pd.Series(dtype=np.float32)
+                                )
                                 this_line_num_dimensions += 1
                                 num_dimensions = this_line_num_dimensions
 
@@ -573,7 +624,10 @@ def load_from_tsfile_to_dataframe(
 
                         # If this is the 1st line of data we have seen then note the dimensions
 
-                        if not has_another_value and num_dimensions != this_line_num_dimensions:
+                        if (
+                            not has_another_value
+                            and num_dimensions != this_line_num_dimensions
+                        ):
                             raise TsFileParseException(
                                 "line "
                                 + str(line_num + 1)
@@ -583,7 +637,9 @@ def load_from_tsfile_to_dataframe(
                         # Check if we should have class values, and if so that they are contained in those listed in the metadata
 
                         if target_labels and len(class_val_list) == 0:
-                            raise TsFileParseException("the cases have no associated class values")
+                            raise TsFileParseException(
+                                "the cases have no associated class values"
+                            )
                     else:
                         dimensions = line.split(":")
                         # If first row then note the number of dimensions (that must be the same for all cases)
@@ -624,7 +680,9 @@ def load_from_tsfile_to_dataframe(
                                 instance_list[dim].append(pd.Series())
 
                         if target_labels:
-                            class_val_list.append(float(dimensions[num_dimensions].strip()))
+                            class_val_list.append(
+                                float(dimensions[num_dimensions].strip())
+                            )
 
             line_num += 1
 
@@ -639,10 +697,18 @@ def load_from_tsfile_to_dataframe(
             and has_data_tag
         )
         complete_classification_meta_data = (
-            has_problem_name_tag and has_timestamps_tag and has_univariate_tag and has_class_labels_tag and has_data_tag
+            has_problem_name_tag
+            and has_timestamps_tag
+            and has_univariate_tag
+            and has_class_labels_tag
+            and has_data_tag
         )
 
-        if metadata_started and not complete_regression_meta_data and not complete_classification_meta_data:
+        if (
+            metadata_started
+            and not complete_regression_meta_data
+            and not complete_classification_meta_data
+        ):
             raise TsFileParseException("metadata incomplete")
         elif metadata_started and not data_started:
             raise TsFileParseException("file contained metadata but no data")
@@ -724,13 +790,29 @@ class StandardScaler:
         self.std = data.std(0)
 
     def transform(self, data):
-        mean = torch.from_numpy(self.mean).type_as(data).to(data.device) if torch.is_tensor(data) else self.mean
-        std = torch.from_numpy(self.std).type_as(data).to(data.device) if torch.is_tensor(data) else self.std
+        mean = (
+            torch.from_numpy(self.mean).type_as(data).to(data.device)
+            if torch.is_tensor(data)
+            else self.mean
+        )
+        std = (
+            torch.from_numpy(self.std).type_as(data).to(data.device)
+            if torch.is_tensor(data)
+            else self.std
+        )
         return (data - mean) / std
 
     def inverse_transform(self, data):
-        mean = torch.from_numpy(self.mean).type_as(data).to(data.device) if torch.is_tensor(data) else self.mean
-        std = torch.from_numpy(self.std).type_as(data).to(data.device) if torch.is_tensor(data) else self.std
+        mean = (
+            torch.from_numpy(self.mean).type_as(data).to(data.device)
+            if torch.is_tensor(data)
+            else self.mean
+        )
+        std = (
+            torch.from_numpy(self.std).type_as(data).to(data.device)
+            if torch.is_tensor(data)
+            else self.std
+        )
         return (data * std) + mean
 
 
@@ -858,7 +940,6 @@ def time_features_from_frequency_str(freq_str: str) -> List[TimeFeature]:
     raise RuntimeError(supported_freq_msg)
 
 
-
 def time_features(dates, timeenc=1, freq="h") -> np.ndarray:
     """
     > `time_features` takes in a `dates` dataframe with a 'dates' column and extracts the date down to `freq` where freq can be any of the following if `timeenc` is 0:
@@ -900,5 +981,6 @@ def time_features(dates, timeenc=1, freq="h") -> np.ndarray:
         return dates[freq_map[freq.lower()]].values
     else:
         dates = pd.to_datetime(dates.date.values)
-        return np.vstack([feat(dates) for feat in time_features_from_frequency_str(freq)]).transpose(1, 0)
-
+        return np.vstack(
+            [feat(dates) for feat in time_features_from_frequency_str(freq)]
+        ).transpose(1, 0)

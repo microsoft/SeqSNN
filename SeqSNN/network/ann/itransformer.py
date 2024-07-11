@@ -10,7 +10,7 @@ from ..base import NETWORKS
 
 
 class DataEmbedding_inverted(nn.Module):
-    def __init__(self, c_in, d_model, embed_type='fixed', freq='h', dropout=0.1):
+    def __init__(self, c_in, d_model, embed_type="fixed", freq="h", dropout=0.1):
         super(DataEmbedding_inverted, self).__init__()
         self.value_embedding = nn.Linear(c_in, d_model)
         self.dropout = nn.Dropout(p=dropout)
@@ -22,16 +22,18 @@ class DataEmbedding_inverted(nn.Module):
             x = self.value_embedding(x)
         else:
             # the potential to take covariates (e.g. timestamps) as tokens
-            x = self.value_embedding(torch.cat([x, x_mark.permute(0, 2, 1)], 1)) 
+            x = self.value_embedding(torch.cat([x, x_mark.permute(0, 2, 1)], 1))
         # x: [Batch Variate d_model]
         return self.dropout(x)
 
 
-class TriangularCausalMask():
+class TriangularCausalMask:
     def __init__(self, B, L, device="cpu"):
         mask_shape = [B, 1, L, L]
         with torch.no_grad():
-            self._mask = torch.triu(torch.ones(mask_shape, dtype=torch.bool), diagonal=1).to(device)
+            self._mask = torch.triu(
+                torch.ones(mask_shape, dtype=torch.bool), diagonal=1
+            ).to(device)
 
     @property
     def mask(self):
@@ -39,7 +41,14 @@ class TriangularCausalMask():
 
 
 class FullAttention(nn.Module):
-    def __init__(self, mask_flag=True, factor=5, scale=None, attention_dropout=0.1, output_attention=False):
+    def __init__(
+        self,
+        mask_flag=True,
+        factor=5,
+        scale=None,
+        attention_dropout=0.1,
+        output_attention=False,
+    ):
         super(FullAttention, self).__init__()
         self.scale = scale
         self.mask_flag = mask_flag
@@ -49,7 +58,7 @@ class FullAttention(nn.Module):
     def forward(self, queries, keys, values, attn_mask, tau=None, delta=None):
         B, L, H, E = queries.shape
         _, S, _, D = values.shape
-        scale = self.scale or 1. / sqrt(E)
+        scale = self.scale or 1.0 / sqrt(E)
 
         scores = torch.einsum("blhe,bshe->bhls", queries, keys)
 
@@ -69,8 +78,7 @@ class FullAttention(nn.Module):
 
 
 class AttentionLayer(nn.Module):
-    def __init__(self, attention, d_model, n_heads, d_keys=None,
-                 d_values=None):
+    def __init__(self, attention, d_model, n_heads, d_keys=None, d_values=None):
         super(AttentionLayer, self).__init__()
 
         d_keys = d_keys or (d_model // n_heads)
@@ -93,12 +101,7 @@ class AttentionLayer(nn.Module):
         values = self.value_projection(values).view(B, S, H, -1)
 
         out, attn = self.inner_attention(
-            queries,
-            keys,
-            values,
-            attn_mask,
-            tau=tau,
-            delta=delta
+            queries, keys, values, attn_mask, tau=tau, delta=delta
         )
         out = out.view(B, L, -1)
 
@@ -118,11 +121,7 @@ class EncoderLayer(nn.Module):
         self.activation = F.relu if activation == "relu" else F.gelu
 
     def forward(self, x, attn_mask=None, tau=None, delta=None):
-        new_x, attn = self.attention(
-            x, x, x,
-            attn_mask=attn_mask,
-            tau=tau, delta=delta
-        )
+        new_x, attn = self.attention(x, x, x, attn_mask=attn_mask, tau=tau, delta=delta)
         x = x + self.dropout(new_x)
 
         y = x = self.norm1(x)
@@ -136,14 +135,18 @@ class Encoder(nn.Module):
     def __init__(self, attn_layers, conv_layers=None, norm_layer=None):
         super(Encoder, self).__init__()
         self.attn_layers = nn.ModuleList(attn_layers)
-        self.conv_layers = nn.ModuleList(conv_layers) if conv_layers is not None else None
+        self.conv_layers = (
+            nn.ModuleList(conv_layers) if conv_layers is not None else None
+        )
         self.norm = norm_layer
 
     def forward(self, x, attn_mask=None, tau=None, delta=None):
         # x [B, L, D]
         attns = []
         if self.conv_layers is not None:
-            for i, (attn_layer, conv_layer) in enumerate(zip(self.attn_layers, self.conv_layers)):
+            for i, (attn_layer, conv_layer) in enumerate(
+                zip(self.attn_layers, self.conv_layers)
+            ):
                 delta = delta if i == 0 else None
                 x, attn = attn_layer(x, attn_mask=attn_mask, tau=tau, delta=delta)
                 x = conv_layer(x)
@@ -167,14 +170,14 @@ class ITransformer(nn.Module):
     Code copied and modified from the work of ITransformer[1]:
     Paper link: https://arxiv.org/abs/2310.06625
     Original Github repo: https://github.com/thuml/iTransformer
-    
+
     [1] Liu, Yong, et al. "iTransformer: Inverted Transformers
-    Are Effective for Time Series Forecasting." The Twelfth 
+    Are Effective for Time Series Forecasting." The Twelfth
     International Conference on Learning Representations.
     """
 
     def __init__(
-        self, 
+        self,
         output_attention: bool = False,
         factor: int = 1,
         embed: str = "fixed",
@@ -196,9 +199,9 @@ class ITransformer(nn.Module):
         Args:
             output_attention (bool, optional): Whether to output attention in the encoder. Defaults to False.
             factor (int, optional): Attention factor. Defaults to 1.
-            embed (str, optional): Type of embedding. Options: [timeF, fixed, learned]. 
+            embed (str, optional): Type of embedding. Options: [timeF, fixed, learned].
                 Unused in our implementation. Defaults to "fixed".
-            freq (str, optional): Frequency of time series. Options: [s, t, h, d, b, w, m]. 
+            freq (str, optional): Frequency of time series. Options: [s, t, h, d, b, w, m].
                 Unused in our implementation. Defaults to "h".
             e_layers (int, optional): Number of encoder layers. Defaults to 2.
             d_ff (int, optional): Dimension of the feedforward network. Defaults to 2048.
@@ -207,70 +210,78 @@ class ITransformer(nn.Module):
             max_length (int, optional): Maximum length of the sequence. Defaults to 100.
             n_heads (int, optional): Number of attention heads. Defaults to 8.
             activation (str, optional): Activation function. Defaults to "gelu".
-            class_strategy (str, optional): Class strategy. Options: [projection, average, cls_token]. 
+            class_strategy (str, optional): Class strategy. Options: [projection, average, cls_token].
                 Unused in the original repository. Defaults to "projection".
             input_size (Optional[int], optional): Size of the input. Defaults to None.
-            weight_file (Optional[Path], optional): Path to the weight file. Defaults to None. 
+            weight_file (Optional[Path], optional): Path to the weight file. Defaults to None.
         """
         super(ITransformer, self).__init__()
         self.input_size = input_size
         self.max_length = max_length
         self.output_attention = output_attention
-        self.enc_embedding = DataEmbedding_inverted(max_length, d_model, embed, freq, dropout)
+        self.enc_embedding = DataEmbedding_inverted(
+            max_length, d_model, embed, freq, dropout
+        )
         self.class_strategy = class_strategy
         self.d_model = d_model
         self.encoder = Encoder(
             [
                 EncoderLayer(
                     AttentionLayer(
-                        FullAttention(False, factor, attention_dropout=dropout, output_attention=output_attention),
+                        FullAttention(
+                            False,
+                            factor,
+                            attention_dropout=dropout,
+                            output_attention=output_attention,
+                        ),
                         d_model,
-                        n_heads
+                        n_heads,
                     ),
                     d_model,
                     d_ff,
                     dropout=dropout,
-                    activation=activation
-                ) for l in range(e_layers)
+                    activation=activation,
+                )
+                for l in range(e_layers)
             ],
-            norm_layer=torch.nn.LayerNorm(d_model)
+            norm_layer=torch.nn.LayerNorm(d_model),
         )
 
     def forecast(self, x_enc):
-        # FIXME: x_enc_mark, x_dec_mark in the original paper are not used here 
+        # FIXME: x_enc_mark, x_dec_mark in the original paper are not used here
         # because our data provider has already provided timestamp information
-        
+
         # Normalization from Non-stationary Transformer
         means = x_enc.mean(1, keepdim=True).detach()
         x_enc = x_enc - means
         stdev = torch.sqrt(torch.var(x_enc, dim=1, keepdim=True, unbiased=False) + 1e-5)
         x_enc /= stdev
 
-        B, _, N = x_enc.shape # B L N
-        # B: batch_size;    E: d_model; 
+        B, _, N = x_enc.shape  # B L N
+        # B: batch_size;    E: d_model;
         # L: seq_len;       S: pred_len;
         # N: number of variate (tokens), can also includes covariates
 
         # Embedding
         # B L N -> B N E                (B L N -> B L E in the vanilla Transformer)
-        enc_out = self.enc_embedding(x_enc, None) # covariates (e.g timestamp) can be also embedded as tokens
-        
+        enc_out = self.enc_embedding(
+            x_enc, None
+        )  # covariates (e.g timestamp) can be also embedded as tokens
+
         # B N E -> B N E                (B L E -> B L E in the vanilla Transformer)
         # the dimensions of embedded time series has been inverted, and then processed by native attn, layernorm and ffn modules
         enc_out, attns = self.encoder(enc_out, attn_mask=None)
 
-        return enc_out, enc_out # B N E 
-
+        return enc_out, enc_out  # B N E
 
     def forward(self, x_enc, mask=None):
         enc_out = self.forecast(x_enc)
-        return enc_out # remember to add a projection layer in Model.
-    
-        
+        return enc_out  # remember to add a projection layer in Model.
+
     @property
     def output_size(self):
-        return self.d_model # E
-    
+        return self.d_model  # E
+
     @property
     def hidden_size(self):
         return self.d_model

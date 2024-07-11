@@ -1,8 +1,10 @@
 import re
-import setuptools
 from datetime import datetime
 from distutils.cmd import Command
 from pathlib import Path
+
+import setuptools
+
 
 init_file_path = "SeqSNN/__init__.py"
 
@@ -40,7 +42,9 @@ class BumpDevVersion(Command):
         raw_content = read(init_file_path)
         current_time = datetime.now().strftime("%Y%m%d%H%M%S")
         pattern = r"__version__\s*=\s*(\'|\")([\d\.]+?)(\.(dev|a|b|rc).*?)?(\'|\")"
-        repl = re.sub(pattern, r"__version__ = '\2.dev" + current_time + "'", raw_content)
+        repl = re.sub(
+            pattern, r"__version__ = '\2.dev" + current_time + "'", raw_content
+        )
         write(init_file_path, repl)
         print(f"Version bumped to {get_version(init_file_path)}")
 

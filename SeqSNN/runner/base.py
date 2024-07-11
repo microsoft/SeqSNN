@@ -7,8 +7,8 @@ import json
 import numpy as np
 import pandas as pd
 import torch
-import torch.nn as nn
-import torch.optim as optim
+from torch import nn
+from torch import optim
 from torch.utils.tensorboard.writer import SummaryWriter
 from torch.utils.data import Dataset, DataLoader
 from utilsd import use_cuda
@@ -24,7 +24,7 @@ class RUNNERS(metaclass=Registry, name="runner"):
 
 
 @RUNNERS.register_module()
-class BaseRunner(nn.Module): 
+class BaseRunner(nn.Module):
     def __init__(
         self,
         loss_fn: str,
@@ -70,11 +70,11 @@ class BaseRunner(nn.Module):
     def _build_network(self, network, *args, **kwargs) -> None:
         # TODO: encoder decoder decompose
         """Initilize the network parameters"""
-        self.network = network # representation / encoder
-        
+        self.network = network  # representation / encoder
+
         # decoder
         # finetune_linear
-        
+
         raise NotImplementedError()
 
     def _init_optimization(
@@ -101,15 +101,21 @@ class BaseRunner(nn.Module):
             self.metric_fn[f] = get_metric_fn(f)
         self.metrics = metrics
         if early_stop is not None:
-            self.early_stop = EarlyStop(patience=early_stop, mode="min" if lower_is_better else "max")
+            self.early_stop = EarlyStop(
+                patience=early_stop, mode="min" if lower_is_better else "max"
+            )
         else:
-            self.early_stop = EarlyStop(patience=max_epoches, mode="min" if lower_is_better else "max")
+            self.early_stop = EarlyStop(
+                patience=max_epoches, mode="min" if lower_is_better else "max"
+            )
         self.max_epoches = max_epoches
         self.batch_size = batch_size
         self.observe = observe
         self.lr = lr
         self.weight_decay = weight_decay
-        self.optimizer = getattr(optim, optimizer)(self.parameters(), lr=lr, weight_decay=weight_decay)
+        self.optimizer = getattr(optim, optimizer)(
+            self.parameters(), lr=lr, weight_decay=weight_decay
+        )
 
     def _init_logger(self, log_dir: Path) -> None:
         """initilize the tensorboard writer
@@ -120,18 +126,26 @@ class BaseRunner(nn.Module):
         self.writer = SummaryWriter(log_dir)
         self.writer.flush()
 
-    def forward(self, X: torch.Tensor):
+    def forward(self, inputs: torch.Tensor):
         """The pytorch module forward function
 
         Args:
-            X (torch.Tensor): Tensorlized feature.
+            inputs (torch.Tensor): Tensorlized feature.
         """
 
     def _init_scheduler(self, loader_length):
         """Setup learning rate scheduler"""
         self.scheduler = None
 
-    def _post_batch(self, iterations: int, epoch, train_loss, train_global_tracker, validset, testset):
+    def _post_batch(
+        self,
+        iterations: int,
+        epoch,
+        train_loss,
+        train_global_tracker,
+        validset,
+        testset,
+    ):
         pass
 
     def _load_weight(self, params):
@@ -159,7 +173,7 @@ class BaseRunner(nn.Module):
         Returns:
             nn.Module: return the model itself.
         """
-        
+
         # setup dataset
         trainset.load()
         if validset is not None:
@@ -180,7 +194,7 @@ class BaseRunner(nn.Module):
         start_epoch, best_res = self._resume()
         best_epoch = best_res.pop("best_epoch", 0)
         best_score = self.early_stop.best
-        
+
         # main loop
         for epoch in range(start_epoch, self.max_epoches):
             # pre_epoch
@@ -188,13 +202,15 @@ class BaseRunner(nn.Module):
             train_loss = AverageMeter()
             train_global_tracker = GlobalTracker(self.metrics, self.metric_fn)
             start_time = time.time()
-            
-            # batch loop 
-            for i, (data, label) in enumerate(loader):
+
+            # batch loop
+            for data, label in loader:
                 # pre batch / fetch data
                 if use_cuda():
-                    data, label = to_torch(data, device="cuda"), to_torch(label, device="cuda")
-                    
+                    data, label = to_torch(data, device="cuda"), to_torch(
+                        label, device="cuda"
+                    )
+
                 # forward_once data -> dict ["loss"]
                 pred = self(data)
 
@@ -213,14 +229,21 @@ class BaseRunner(nn.Module):
                 if self.scheduler is not None:
                     self.scheduler.step()
                 iterations += 1
-                
-                # post batch 
-                self._post_batch(iterations, epoch, train_loss, train_global_tracker, validset, testset)
-            
-            # post epoch 
+
+                # post batch
+                self._post_batch(
+                    iterations,
+                    epoch,
+                    train_loss,
+                    train_global_tracker,
+                    validset,
+                    testset,
+                )
+
+            # post epoch
             train_time = time.time() - start_time
             loss = train_loss.performance()  # loss
-            # wandb.log({"train_loss": loss}) 
+            # wandb.log({"train_loss": loss})
             start_time = time.time()
             train_global_tracker.concat()
             metric_res = train_global_tracker.performance()
@@ -229,7 +252,9 @@ class BaseRunner(nn.Module):
 
             # print log
             # log epoch
-            printt(f"{epoch}\t'train'\tTime:{train_time:.2f}\tMetricT: {metric_time:.2f}")
+            printt(
+                f"{epoch}\t'train'\tTime:{train_time:.2f}\tMetricT: {metric_time:.2f}"
+            )
             for metric, value in metric_res.items():
                 printt(f"{metric}: {value:.4f}")
             print(f"{datetime.datetime.today()}")
@@ -248,8 +273,13 @@ class BaseRunner(nn.Module):
                     self.best_params = copy.deepcopy(self.state_dict())
                     self.best_network_params = copy.deepcopy(self.network.state_dict())
                     best_res = {"train": metric_res, "valid": eval_res}
-                    torch.save(self.best_params, f"{self.checkpoint_dir}/model_best.pkl")
-                    torch.save(self.best_network_params, f"{self.checkpoint_dir}/network_best.pkl")
+                    torch.save(
+                        self.best_params, f"{self.checkpoint_dir}/model_best.pkl"
+                    )
+                    torch.save(
+                        self.best_network_params,
+                        f"{self.checkpoint_dir}/network_best.pkl",
+                    )
                 elif es == EarlyStopStatus.STOP and self._early_stop():
                     break
             else:
@@ -260,8 +290,13 @@ class BaseRunner(nn.Module):
                     self.best_params = copy.deepcopy(self.state_dict())
                     self.best_network_params = copy.deepcopy(self.network.state_dict())
                     best_res = {"train": metric_res}
-                    torch.save(self.best_params, f"{self.checkpoint_dir}/model_best.pkl")
-                    torch.save(self.best_network_params, f"{self.checkpoint_dir}/network_best.pkl")
+                    torch.save(
+                        self.best_params, f"{self.checkpoint_dir}/model_best.pkl"
+                    )
+                    torch.save(
+                        self.best_network_params,
+                        f"{self.checkpoint_dir}/network_best.pkl",
+                    )
                 elif es == EarlyStopStatus.STOP and self._early_stop():
                     break
             self._checkpoint(epoch, {**best_res, "best_epoch": best_epoch})
@@ -293,7 +328,9 @@ class BaseRunner(nn.Module):
         for k in keys:
             if type(self.hyper_paras[k]) not in [int, float, str, bool, torch.Tensor]:
                 self.hyper_paras.pop(k)
-        self.writer.add_hparams(self.hyper_paras, {"result": best_score, "best_epoch": best_epoch})
+        self.writer.add_hparams(
+            self.hyper_paras, {"result": best_score, "best_epoch": best_epoch}
+        )
 
         return self
 
@@ -308,9 +345,15 @@ class BaseRunner(nn.Module):
                 "best_params": self.best_params,
                 "best_network_params": self.best_network_params,
             },
-            self.checkpoint_dir / "resume.pth" if checkpoint_dir is None else checkpoint_dir / "resume.pth",
+            self.checkpoint_dir / "resume.pth"
+            if checkpoint_dir is None
+            else checkpoint_dir / "resume.pth",
         )
-        print(f"Checkpoint saved to {self.checkpoint_dir / 'resume.pth' if checkpoint_dir is None else checkpoint_dir / 'resume.pth'}", __name__)
+        print(
+            f"Checkpoint saved to"
+            f"{self.checkpoint_dir / 'resume.pth' if checkpoint_dir is None else checkpoint_dir / 'resume.pth'}",
+            __name__,
+        )
 
     def _resume(self):
         if (self.checkpoint_dir / "resume.pth").exists():
@@ -351,7 +394,9 @@ class BaseRunner(nn.Module):
         with torch.no_grad():
             for _, (data, label) in enumerate(loader):
                 if use_cuda():
-                    data, label = to_torch(data, device="cuda"), to_torch(label, device="cuda")
+                    data, label = to_torch(data, device="cuda"), to_torch(
+                        label, device="cuda"
+                    )
                 pred = self(data)
                 if self.out_ranges is not None:
                     pred = pred[:, self.out_ranges]
@@ -371,7 +416,9 @@ class BaseRunner(nn.Module):
         metric_res["loss"] = loss
 
         if epoch is not None:
-            printt(f"{epoch}\t'valid'\tTime:{eval_time:.2f}\tMetricT: {metric_time:.2f}")
+            printt(
+                f"{epoch}\t'valid'\tTime:{eval_time:.2f}\tMetricT: {metric_time:.2f}"
+            )
             for metric, value in metric_res.items():
                 printt(f"{metric}: {value:.4f}")
             print(f"{datetime.datetime.today()}")
@@ -403,13 +450,13 @@ class BaseRunner(nn.Module):
         preds = []
         dataset.load()
         loader = DataLoader(
-            dataset, 
-            batch_size=self.batch_size, 
-            shuffle=False, 
-            pin_memory=True, 
-            num_workers=8
+            dataset,
+            batch_size=self.batch_size,
+            shuffle=False,
+            pin_memory=True,
+            num_workers=8,
         )
-        for _, (data, label) in enumerate(loader):
+        for data, _ in loader:
             if use_cuda():
                 data = to_torch(data, device="cuda")
             pred = self(data)
