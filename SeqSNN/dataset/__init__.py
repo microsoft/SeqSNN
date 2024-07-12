@@ -1,3 +1,2 @@
-from .forecast import DATASETS, ForecastDataset
 from .ts import TSDataset
-from .tsforecast import TSMSDataset
+from .tsforecast import TSMSDataset, DATASETS
