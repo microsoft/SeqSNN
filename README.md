@@ -1,5 +1,11 @@
-# Introduction 
-Code for ICML 2024 paper "Efficient and Effective Time-Series Forecasting with Spiking Neural Networks"(https://arxiv.org/pdf/2402.01533)
+# SeqSNN
+
+A public framework for time-series forecasting with spiking neural networks (SNNs).
+
+## Related Papers
+* Efficient and Effective Time-Series Forecasting with Spiking Neural Network, [ICML 2024], (https://arxiv.org/pdf/2402.01533).
+* Advancing Spiking Neural Networks for Sequential Modeling with Central Pattern Generators, [Arxiv:2405.14362], (https://arxiv.org/pdf/2405.14362).
+
 
 # Installation
 To install SeqSNN in a new conda environment:
@@ -18,11 +24,10 @@ If you would like to make changes and run your own expeirments, use:
 ## Training
 Take the `iSpikformer` model as an example:
 
-`python tsforecast.py exp/forecast/ispikformer_electricity.yml`
+`python tsforecast.py exp/forecast/ispikformer/ispikformer_electricity.yml`
 
 You can change the `yml` configuration files as you want.
 
-We also provide several classic ANN models for time-series forecasting, such as TCN, Autoformer, LSTNet, and MTGNN.
 You can add, remove, or modify your model architecture in `forecaster/network/XXX.py`.
 
 ## Datasets
