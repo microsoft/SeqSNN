@@ -1,9 +1,9 @@
-from dataclasses import dataclass
-from importlib.metadata import requires
-import torch
-import torch.nn as nn
 
 import math
+
+from dataclasses import dataclass
+import torch
+from torch import nn
 
 
 @dataclass
@@ -41,7 +41,7 @@ class CPGLinear(nn.Module):
     def __init__(
         self, input_size: int, output_size: int, cpg: CPG = CPG(), dropout: float = 0.1
     ):
-        super(CPGLinear, self).__init__()
+        super().__init__()
         self.cpg = nn.Parameter(cpg.cpg, requires_grad=False)
         self.inp_linear = nn.Linear(input_size, output_size)
         self.cpg_linear = nn.Linear(cpg.num_neurons, output_size)

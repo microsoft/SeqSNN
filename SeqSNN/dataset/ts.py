@@ -2,22 +2,23 @@
 The dataloader for loading .ts data.
 Refer to the code in https://github.com/gzerveas/mvts_transformer.
 """
+from typing import Optional
+import logging
+
 import numpy as np
 import pandas as pd
-from typing import Optional
 
 from sktime import datasets
 from sklearn.model_selection import train_test_split
-from .utils import load_from_tsfile_to_dataframe
-
-from .forecast import DATASETS
 from torch.utils.data import Dataset
-import logging
+
+from .tsforecast import DATASETS
+from .utils import load_from_tsfile_to_dataframe
 
 logger = logging.getLogger(__name__)
 
 
-class Normalizer(object):
+class Normalizer():
     """
     Normalizes dataframe across ALL contained rows (time steps). Different from per-sample normalization.
     """
@@ -68,9 +69,8 @@ class Normalizer(object):
             return (df - min_vals) / (
                 grouped.transform("max") - min_vals + np.finfo(float).eps
             )
-
         else:
-            raise (NameError(f'Normalize method "{self.norm_type}" not implemented'))
+            raise NameError(f'Normalize method "{self.norm_type}" not implemented')
 
 
 def interpolate_missing(y):
@@ -109,11 +109,11 @@ class TSDataset(Dataset):
             train_df, _ = load_data(
                 f"{prefix}/{name}/{name}_TRAIN.ts",
             )
-            train_lengths = train_df.applymap(lambda x: len(x)).values
+            train_lengths = train_df.applymap(len).values
             test_df, _ = load_data(
                 f"{prefix}/{name}/{name}_TEST.ts",
             )
-            test_lengths = test_df.applymap(lambda x: len(x)).values
+            test_lengths = test_df.applymap(len).values
             self._max_seq_len = int(max(np.max(train_lengths), np.max(test_lengths)))
         else:
             self._max_seq_len = max_seq_len
@@ -137,7 +137,7 @@ class TSDataset(Dataset):
 
         assert len(df) == len(labels)
         self.datasize = len(df)
-        lengths = df.applymap(lambda x: len(x)).values
+        lengths = df.applymap(len).values
 
         df = pd.concat(
             (
@@ -202,7 +202,7 @@ class TSDataset(Dataset):
                     self.label = self.label.rename(index=rename_dict)
             elif dataset_split_ratio == 0:
                 if dataset == "valid":
-                    raise Exception("valid dataset must have dataset_split_ratio")
+                    raise ValueError("valid dataset must have dataset_split_ratio")
 
         if normalizer is not None:
             self.feature = normalizer.normalize(self.feature)

@@ -1,7 +1,6 @@
 from .base import NETWORKS
 
 from .ann.tsrnn import TSRNN
-from .ann.tcn import TemporalConvNet, TemporalConvNetLayer
 from .ann.itransformer import ITransformer
 from .ann.tcn2d import TemporalConvNet2D, TemporalBlock2D
 

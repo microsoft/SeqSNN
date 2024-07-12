@@ -6,7 +6,7 @@ from snntorch import surrogate
 from snntorch import utils
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 from ..base import NETWORKS
 
@@ -49,7 +49,8 @@ class SNNCell(nn.Module):
             static = False
         else:
             raise ValueError(
-                f"Input size mismatch! Got {inputs.size()} but expected (..., {self.input_size}, {self.num_steps}) or (..., {self.input_size})"
+                f"Input size mismatch! "
+                f"Got {inputs.size()} but expected (..., {self.input_size}, {self.num_steps}) or (..., {self.input_size})"
             )
         spk_rec = []
         mem_rec = []

@@ -1,9 +1,9 @@
-import torch.nn as nn
+from torch import nn
 
 
 class Chomp1d(nn.Module):
     def __init__(self, chomp_size):
-        super(Chomp1d, self).__init__()
+        super().__init__()
         self.chomp_size = chomp_size
 
     def forward(self, x):
@@ -12,7 +12,7 @@ class Chomp1d(nn.Module):
 
 class Chomp2d(nn.Module):
     def __init__(self, chomp_size):
-        super(Chomp2d, self).__init__()
+        super().__init__()
         self.chomp_size = chomp_size
 
     def forward(self, x):

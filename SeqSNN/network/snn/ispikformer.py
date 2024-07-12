@@ -1,11 +1,8 @@
 from typing import Optional
-
 from pathlib import Path
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
+
+from torch import nn
 from spikingjelly.activation_based import surrogate, neuron, functional
-import numpy as np
 from ..base import NETWORKS
 from ...module.spike_encoding import SpikeEncoder
 from ...module.spike_attention import Block
@@ -18,7 +15,7 @@ detach_reset = True
 
 class DataEmbedding_inverted(nn.Module):
     def __init__(self, c_in, d_model):
-        super(DataEmbedding_inverted, self).__init__()
+        super().__init__()
         self.d_model = d_model
         self.value_embedding = nn.Linear(c_in, d_model)
         self.bn = nn.BatchNorm1d(d_model)
@@ -31,7 +28,7 @@ class DataEmbedding_inverted(nn.Module):
 
     def forward(self, x):
         # x: T B L C
-        T, B, L, C = x.shape
+        T, B, _, C = x.shape
         x = x.permute(0, 1, 3, 2).flatten(0, 1)  # TB C L
         x = self.value_embedding(x)  # TB C H
         x = self.bn(x.transpose(-1, -2)).transpose(-1, -2)  # TB C H
@@ -59,7 +56,7 @@ class iSpikformer(nn.Module):
         weight_file: Optional[Path] = None,
         encoder_type: Optional[str] = "conv",
     ):
-        super(iSpikformer, self).__init__()
+        super().__init__()
         self.dim = dim
         self.d_ff = d_ff or dim * 4
         self.T = num_steps
@@ -103,7 +100,7 @@ class iSpikformer(nn.Module):
         x = x.transpose(2, 3)  # T B L C
 
         x = self.emb(x)  # T B C H
-        for i, blk in enumerate(self.blocks):
+        for blk in self.blocks:
             x = blk(x)  # T B C H
         out = x[-1, :, :, :]
         return out, out  # B C H, B C H

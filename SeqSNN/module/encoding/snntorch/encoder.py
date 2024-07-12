@@ -1,5 +1,5 @@
 import torch
-import torch.nn as nn
+from torch import nn
 import snntorch as snn
 from snntorch import surrogate
 

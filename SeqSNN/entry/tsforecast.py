@@ -1,3 +1,5 @@
+import warnings
+
 from utilsd import get_output_dir, get_checkpoint_dir, setup_experiment
 from utilsd.experiment import print_config
 from utilsd.config import PythonConfig, RegistryConfig, RuntimeConfig, configclass
@@ -5,10 +7,6 @@ from utilsd.config import PythonConfig, RegistryConfig, RuntimeConfig, configcla
 from SeqSNN.dataset import DATASETS
 from SeqSNN.runner import RUNNERS
 from SeqSNN.network import NETWORKS
-
-# import wandb
-
-import warnings
 
 warnings.filterwarnings("ignore")
 
@@ -40,7 +38,6 @@ def run_train(config):
     runner.predict(trainset, "train")
     runner.predict(validset, "valid")
     runner.predict(testset, "test")
-    return
 
 
 if __name__ == "__main__":

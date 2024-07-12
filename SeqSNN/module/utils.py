@@ -1,4 +1,4 @@
-import torch.nn as nn
+from torch import nn
 
 
 def get_cell(cell_type):

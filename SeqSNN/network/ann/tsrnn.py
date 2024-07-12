@@ -2,7 +2,7 @@ from typing import Optional
 from pathlib import Path
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 from ...module import PositionEmbedding, get_cell
 from ..base import NETWORKS

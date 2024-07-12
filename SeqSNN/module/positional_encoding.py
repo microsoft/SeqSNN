@@ -1,9 +1,9 @@
 import math
-from turtle import pos
-
-import torch.nn as nn
-import torch
 import copy
+
+from torch import nn
+import torch
+from spikingjelly.activation_based import surrogate, neuron
 
 
 def generate_ones_and_minus_ones_matrix(rows, cols):
@@ -26,7 +26,7 @@ class RandomPE(nn.Module):
         dropout=0.1,
         num_steps=4,
     ):
-        super(RandomPE, self).__init__()
+        super().__init__()
         self.max_len = 5000  # different from windows
         self.pe_mode = pe_mode
         self.neuron_pe_scale = neuron_pe_scale
@@ -80,7 +80,7 @@ class NeuronPE(nn.Module):
         dropout=0.1,
         num_steps=4,
     ):
-        super(NeuronPE, self).__init__()
+        super().__init__()
         self.max_len = 50000  # different from windows
         self.pe_mode = pe_mode
         self.neuron_pe_scale = neuron_pe_scale
@@ -151,7 +151,7 @@ class StaticPE(nn.Module):
         \text{where pos is the word position and i is the embed idx)"""
 
     def __init__(self, d_model, dropout=0.1, max_len=5000):
-        super(StaticPE, self).__init__()
+        super().__init__()
         self.dropout = nn.Dropout(p=dropout)
         pe = torch.zeros(max_len, d_model)  # MaxL, D
         position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)  # MaxL, 1
@@ -175,12 +175,8 @@ class StaticPE(nn.Module):
 
 class ConvPE(nn.Module):
     def __init__(self, d_model, dropout=0.1, max_len=5000, num_steps=4):
-        import sys
 
-        sys.path.append("./forecaster")
-        from spikingjelly.activation_based import surrogate, neuron, functional
-
-        super(ConvPE, self).__init__()
+        super().__init__()
         self.T = num_steps
         self.rpe_conv = nn.Conv1d(
             d_model, d_model, kernel_size=3, stride=1, padding=1, bias=False
@@ -222,9 +218,9 @@ class PositionEmbedding(nn.Module):
         dropout=0.1,
         num_steps=4,
     ):
-        super(PositionEmbedding, self).__init__()
+        super().__init__()
         self.emb_type = pe_type
-        if pe_type == "learn" or pe_type == "none":
+        if pe_type in ["learn", "none"]:
             self.emb = nn.Embedding(max_len, input_size)
         elif pe_type == "conv":
             self.emb = ConvPE(
@@ -267,13 +263,13 @@ class PositionEmbedding(nn.Module):
             embedding = embedding.repeat([x.size()[0], 1, 1])  # TB, L, D'
             x = x + embedding
             # x = x.reshape(T, B, L, -1)
-        elif self.emb_type == "static" or self.emb_type == "conv":
-            T, B, L, D = x.shape  # x: T, B, L, D
+        elif self.emb_type in ["static", "conv"]:
+            T, B, L, _ = x.shape  # x: T, B, L, D
             x = x.flatten(0, 1)  # TB, L, D
             x = self.emb(x.transpose(0, 1)).transpose(0, 1)  # x: TB, L, D'
             x = x.reshape(T, B, L, -1)
-        elif self.emb_type == "neuron" or self.emb_type == "random":
-            T, B, L, D = x.shape  # x: T, B, L, D
+        elif self.emb_type in ["neuron", "random"]:
+            T, B, L, _ = x.shape  # x: T, B, L, D
             # T, B, L, D
             x = self.emb(x)
             x = x.reshape(T, B, L, -1)

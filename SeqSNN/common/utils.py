@@ -56,7 +56,7 @@ def to_torch(
         raise TypeError(f"object {x} cannot be converted to torch.")
 
 
-class Timer(object):
+class Timer():
     def __init__(self, message=None):
         self.message = message
 
@@ -72,7 +72,7 @@ class Timer(object):
 # Evaluation Metrics
 
 
-class MovingAverage(object):
+class MovingAverage():
     def __init__(self, decay, init_val=0, shape=None):
         self.decay = decay
         if type(init_val) == int:
@@ -87,7 +87,7 @@ class MovingAverage(object):
         ]
 
 
-class AverageMeter(object):
+class AverageMeter():
     def __init__(self):
         self.reset()
 
@@ -110,7 +110,7 @@ class AverageMeter(object):
         return str(self.performance())
 
 
-class GlobalMeter(object):
+class GlobalMeter():
     def __init__(self, f=lambda x, y: 0):
         self.reset()
         self.f = f
@@ -159,7 +159,7 @@ class GlobalMeter(object):
         return str(self.performance())
 
 
-class AverageTracker(object):
+class AverageTracker():
     def __init__(self, metrics):
         self.metrics = metrics  # isolated metric list to guarantee metric order
         self.trackers = {}

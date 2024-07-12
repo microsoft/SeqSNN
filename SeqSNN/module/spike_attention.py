@@ -1,7 +1,6 @@
-import torch
-import torch.nn as nn
+from torch import nn
 
-from spikingjelly.activation_based import surrogate, neuron, functional
+from spikingjelly.activation_based import surrogate, neuron
 
 
 tau = 2.0  # beta = 1 - 1/tau
@@ -146,7 +145,6 @@ class MLP(nn.Module):
         super().__init__()
         # self.length = length
         out_features = out_features or in_features
-        hidden_features = hidden_features
         self.in_features = in_features
         self.hidden_features = hidden_features
         self.out_features = out_features

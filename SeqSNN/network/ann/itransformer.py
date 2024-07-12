@@ -1,17 +1,18 @@
 from typing import Optional
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import numpy as np
 from math import sqrt
 from pathlib import Path
+
+import torch
+from torch import nn
+import torch.nn.functional as F
+import numpy as np
 
 from ..base import NETWORKS
 
 
 class DataEmbedding_inverted(nn.Module):
     def __init__(self, c_in, d_model, embed_type="fixed", freq="h", dropout=0.1):
-        super(DataEmbedding_inverted, self).__init__()
+        super().__init__()
         self.value_embedding = nn.Linear(c_in, d_model)
         self.dropout = nn.Dropout(p=dropout)
 
@@ -49,15 +50,14 @@ class FullAttention(nn.Module):
         attention_dropout=0.1,
         output_attention=False,
     ):
-        super(FullAttention, self).__init__()
+        super().__init__()
         self.scale = scale
         self.mask_flag = mask_flag
         self.output_attention = output_attention
         self.dropout = nn.Dropout(attention_dropout)
 
     def forward(self, queries, keys, values, attn_mask, tau=None, delta=None):
-        B, L, H, E = queries.shape
-        _, S, _, D = values.shape
+        B, L, _, E = queries.shape
         scale = self.scale or 1.0 / sqrt(E)
 
         scores = torch.einsum("blhe,bshe->bhls", queries, keys)
@@ -79,7 +79,7 @@ class FullAttention(nn.Module):
 
 class AttentionLayer(nn.Module):
     def __init__(self, attention, d_model, n_heads, d_keys=None, d_values=None):
-        super(AttentionLayer, self).__init__()
+        super().__init__()
 
         d_keys = d_keys or (d_model // n_heads)
         d_values = d_values or (d_model // n_heads)
@@ -110,7 +110,7 @@ class AttentionLayer(nn.Module):
 
 class EncoderLayer(nn.Module):
     def __init__(self, attention, d_model, d_ff=None, dropout=0.1, activation="relu"):
-        super(EncoderLayer, self).__init__()
+        super().__init__()
         d_ff = d_ff or 4 * d_model
         self.attention = attention
         self.conv1 = nn.Conv1d(in_channels=d_model, out_channels=d_ff, kernel_size=1)
@@ -133,7 +133,7 @@ class EncoderLayer(nn.Module):
 
 class Encoder(nn.Module):
     def __init__(self, attn_layers, conv_layers=None, norm_layer=None):
-        super(Encoder, self).__init__()
+        super().__init__()
         self.attn_layers = nn.ModuleList(attn_layers)
         self.conv_layers = (
             nn.ModuleList(conv_layers) if conv_layers is not None else None
@@ -215,7 +215,7 @@ class ITransformer(nn.Module):
             input_size (Optional[int], optional): Size of the input. Defaults to None.
             weight_file (Optional[Path], optional): Path to the weight file. Defaults to None.
         """
-        super(ITransformer, self).__init__()
+        super().__init__()
         self.input_size = input_size
         self.max_length = max_length
         self.output_attention = output_attention
@@ -255,9 +255,8 @@ class ITransformer(nn.Module):
         means = x_enc.mean(1, keepdim=True).detach()
         x_enc = x_enc - means
         stdev = torch.sqrt(torch.var(x_enc, dim=1, keepdim=True, unbiased=False) + 1e-5)
-        x_enc /= stdev
+        x_enc /= stdev # B L N
 
-        B, _, N = x_enc.shape  # B L N
         # B: batch_size;    E: d_model;
         # L: seq_len;       S: pred_len;
         # N: number of variate (tokens), can also includes covariates
@@ -270,7 +269,7 @@ class ITransformer(nn.Module):
 
         # B N E -> B N E                (B L E -> B L E in the vanilla Transformer)
         # the dimensions of embedded time series has been inverted, and then processed by native attn, layernorm and ffn modules
-        enc_out, attns = self.encoder(enc_out, attn_mask=None)
+        enc_out, _ = self.encoder(enc_out, attn_mask=None)
 
         return enc_out, enc_out  # B N E
 
