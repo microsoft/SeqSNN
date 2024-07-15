@@ -1,0 +1,7 @@
+network:
+  type: iSpikformer
+  # d_ff: 512
+  dim: 512
+  depths: 2
+  num_steps: 4
+  heads: 8

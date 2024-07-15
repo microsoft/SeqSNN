@@ -1,0 +1,44 @@
+_base_:
+- ../model/rnn2d.yml
+- ../dataset/pems-bay.yml
+_custom_imports_:
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
+
+data:
+  raw_label: False
+  window: 12
+  horizon: 6
+  normalize: 2
+
+runner:
+  type: ts
+  task: regression
+  optimizer: Adam
+  lr: 0.001
+  weight_decay: 0.0
+  loss_fn: mse
+  metrics: [r2, rse]
+  observe: loss
+  lower_is_better: True
+  max_epoches: 1000
+  early_stop: 30
+  batch_size: 64
+  aggregate: True
+
+network:
+  type: RNN2d
+  spatial_embed: true
+  temporal_embed: true
+  temporal_emb_type: learn
+  hidden_size: 8
+  dropout: 0.5
+  num_layers: 2
+  is_bidir: True
+  # cell_type: GRU
+  cell_type: RNN
+
+runtime:
+  seed: 42
+  output_dir: ./outputs/rnn2d_horizon=6_pems-bay

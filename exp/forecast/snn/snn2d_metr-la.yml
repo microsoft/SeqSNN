@@ -1,0 +1,39 @@
+_base_:
+- ../model/snn2d.yml
+- ../dataset/metr-la.yml
+_custom_imports_:
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
+
+data:
+  type: TSMSDataset
+  file: data/LSTNet_ts/metr-la.h5
+  window: 12
+  horizon: 24
+  train_ratio: 0.7
+  test_ratio: 0.1
+runner:
+  type: ts
+  task: regression
+  optimizer: Adam
+  lr: 0.001
+  weight_decay: 0.0
+  loss_fn: mse
+  metrics: [r2, rrse]
+  observe: loss
+  lower_is_better: True
+  max_epoches: 1000
+  early_stop: 30
+  batch_size: 64
+  aggregate: True
+
+network:
+  type: SNN2d
+  num_steps: 4
+  layers: 2
+  hidden_size: 64
+  encoder_type: conv
+
+runtime: 
+  seed: 42

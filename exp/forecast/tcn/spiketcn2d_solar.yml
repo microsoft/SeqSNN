@@ -1,0 +1,48 @@
+_custom_imports_:
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
+
+data:
+  type: TSMSDataset
+  file: data/LSTNet_ts/solar-energy/solar_AL.txt
+  window: 168
+  horizon: 24
+  train_ratio: 0.7
+  test_ratio: 0.1
+  raw_label: False
+
+runner:
+  type: ts
+  task: regression
+  optimizer: Adam
+  lr: 0.001
+  weight_decay: 0.0
+  loss_fn: mse
+  metrics: [r2, rrse]
+  observe: loss
+  lower_is_better: True
+  max_epoches: 1000
+  early_stop: 30
+  batch_size: 64
+  aggregate: True
+
+network:
+  type: SNN_TCN2D
+  kernel_size: 64
+  num_levels: 3
+  channel: 16
+  dilation: 2
+  dropout: 0.
+  num_steps: 4
+  hidden_size: 64
+  stride: 1
+  encoder_type: conv
+  pe_type: neuron
+  pe_mode: concat
+  num_pe_neuron: 40
+  neuron_pe_scale: 10000.0
+
+runtime: 
+  seed: 42
+  # output_dir: ./outputs/NeuronPE_spiketcn2d_horizon=24_solar

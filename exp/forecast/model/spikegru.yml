@@ -1,0 +1,6 @@
+network:
+  type: ISNNGRU2d
+  num_steps: 4
+  layers: 1
+  hidden_size: 128
+  encoder_type: conv

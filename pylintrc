@@ -40,3 +40,4 @@ disable =
     abstract-method,
     protected-access,
     possibly-used-before-assignment,
+    no-else-return,

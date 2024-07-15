@@ -1,0 +1,9 @@
+network:
+  type: TCN
+  position_embedding: False
+  emb_type: learn
+  kernel_size: 3
+  num_levels: 3
+  channel: 16
+  dilation: 2
+  dropout: 0.

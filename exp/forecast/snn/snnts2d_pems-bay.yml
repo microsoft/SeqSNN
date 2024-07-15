@@ -1,0 +1,20 @@
+_base_:
+- ../model/snn2d.yml
+- ../dataset/pems-bay.yml
+_custom_imports_:
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
+
+data:
+  raw_label: False
+  horizon: 6
+
+runner:
+  type: snnts
+  batch_size: 128
+  early_stop: 20
+  aggregate: False
+
+runtime: 
+  output_dir: ./output/snnts2d_pems-bay

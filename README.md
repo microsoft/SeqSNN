@@ -1,14 +1,76 @@
-# Project
+# SeqSNN
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+A public framework for time-series forecasting with spiking neural networks (SNNs).
 
-As the maintainer of this project, please make a few updates:
+## Related Papers
+* Efficient and Effective Time-Series Forecasting with Spiking Neural Network, [ICML 2024], (https://arxiv.org/pdf/2402.01533).
+* Advancing Spiking Neural Networks for Sequential Modeling with Central Pattern Generators, [Arxiv:2405.14362], (https://arxiv.org/pdf/2405.14362).
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+
+## Installation
+To install SeqSNN in a new conda environment:
+```
+conda create -n SeqSNN python=[3.8, 3.9, 3.10]
+conda activate SeqSNN
+git clone https://github.com/microsoft/SeqSNN/
+cd SeqSNN
+pip install .
+```
+
+If you would like to make changes and run your own expeirments, use:
+
+`pip install -e .`
+
+## Training
+Take the `iSpikformer` model as an example:
+
+`python tsforecast.py exp/forecast/ispikformer/ispikformer_electricity.yml`
+
+You can change the `yml` configuration files as you want.
+
+You can add, remove, or modify your model architecture in `forecaster/network/XXX.py`.
+
+## Datasets
+
+Metr-la and Pems-bay are available at at [Google Drive](https://drive.google.com/drive/folders/10FOTa6HXPqX8Pf5WRoRwcFnW9BrNZEIX) or [Baidu Yun](https://pan.baidu.com/s/14Yy9isAIZYdU__OYEQGa_g).
+Solar and Electricity can be downloaded from  (https://github.com/laiguokun/multivariate-time-series-data).
+
+The folder structure of this procect is as follows:
+```
+SeqSNN
+│   README.md 
+│   ...
+│
+└───data
+│   │   metr-la.h5
+│   │   pems-bay.h5
+│   │
+│   └───solar-energy
+│   │   │   solar_AL.txt
+│   │   │   ...
+│   │   
+│   └───electricity
+│   │   │   electricity.txt
+│   │   │   ...
+│   │   
+│   └───traffic
+│   │   │   traffic.txt
+│   │   │   ...
+│
+└───forecaster
+│   │   ...
+│
+└───exp
+│   │   ...
+│
+└───outputs
+│   │   ...
+│
+```
+You can change the path of data file in `exp/forecast/dataset/XXX.yml` configuration files.
+
+## Acknowledgement
+This repo is built upon (forecaster)[https://github.com/Arthur-Null/SRD], which is a general time-series forecasting library. We greatly thank @rk2900 and @Arthur-Null for their initial contribution. 
 
 ## Contributing
 

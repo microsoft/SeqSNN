@@ -1,0 +1,43 @@
+_base_:
+- ../model/snn2d.yml
+- ../dataset/electricity.yml
+_custom_imports_:
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
+
+data:
+  raw_label: False
+  window: 168
+  horizon: 24
+  normalize: 3
+
+runner:
+  type: ts
+  task: regression
+  optimizer: Adam
+  lr: 0.001
+  weight_decay: 0.0
+  loss_fn: mse
+  metrics: [r2, rrse]
+  observe: loss
+  lower_is_better: True
+  max_epoches: 1000
+  early_stop: 30
+  batch_size: 256
+  aggregate: True
+
+network:
+  type: SNN2d
+  num_steps: 4
+  layers: 2
+  hidden_size: 64
+  encoder_type: conv
+  pe_type: neuron
+  pe_mode: concat
+  num_pe_neuron: 40
+  neuron_pe_scale: 10000.0
+
+runtime: 
+  seed: 41
+  output_dir: ./outputs/snn2d_horizon=24_electricity

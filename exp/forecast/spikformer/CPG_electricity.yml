@@ -1,0 +1,43 @@
+_base_:
+- ../dataset/electricity.yml
+_custom_imports_:
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
+
+data:
+  raw_label: False
+  window: 168
+  horizon: 24
+  normalize: 3
+
+runner:
+  type: ts
+  task: regression
+  optimizer: Adam
+  lr: 0.001
+  weight_decay: 0.0
+  loss_fn: mse
+  metrics: [r2, rse]
+  observe: loss
+  lower_is_better: True
+  max_epoches: 1000
+  early_stop: 30
+  batch_size: 64
+  aggregate: True
+
+network:
+  type: SpikformerCPG
+  dim: 256
+  d_ff: 1024
+  depths: 2
+  num_steps: 4
+  heads: 8
+  pe_type: neuron
+  pe_mode: concat
+  num_pe_neuron: 10
+  neuron_pe_scale: 10000.0
+
+runtime:
+  seed: 41
+  output_dir: ./outputs/CPGFull_10000_10_MLP_horizon=24_electricity

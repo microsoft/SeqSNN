@@ -1,0 +1,40 @@
+_base_:
+- ../model/itransformer.yml
+- ../dataset/metr-la.yml
+_custom_imports_:
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
+
+
+data:
+  raw_label: False
+  window: 12
+  horizon: 48
+
+runner:
+  type: vsts
+  batch_size: 32
+  aggregate: False
+  out_size: 48
+  denormalize: True
+  task: regression
+  optimizer: Adam
+  lr: 0.0001
+  weight_decay: 0.0
+  loss_fn: mse
+  metrics: [r2, rrse]
+  observe: loss
+  lower_is_better: True
+  max_epoches: 1000
+  early_stop: 30
+  valid_variates: 207
+
+network:
+  type: iTransformer
+  d_ff: 512
+  e_layers: 2
+
+runtime:
+  seed: 42
+  output_dir: ./output/itransformer/horizon=48/metra-la

@@ -1,0 +1,39 @@
+_base_:
+- ../dataset/electricity.yml
+_custom_imports_:
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
+
+data:
+  raw_label: False
+  window: 168
+  horizon: 24
+  normalize: 3
+
+runner:
+  type: vsts
+  task: regression
+  optimizer: Adam
+  lr: 0.0001
+  weight_decay: 0.0
+  loss_fn: mse
+  metrics: [r2, rrse]
+  observe: loss
+  batch_size: 32
+  out_size: 24
+  aggregate: False
+  early_stop: 30
+  denormalize: True
+  lower_is_better: True
+  max_epoches: 1000
+  valid_variates: 321
+
+network:
+  type: iSpikformer
+  dim: 256
+  d_ff: 1024
+  depths: 2
+  num_steps: 4
+  heads: 8
+  encoder_type: conv

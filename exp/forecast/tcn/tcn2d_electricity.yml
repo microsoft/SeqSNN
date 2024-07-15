@@ -1,0 +1,42 @@
+_base_:
+- ../model/tcn2d.yml
+- ../dataset/electricity.yml
+_custom_imports_:
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
+
+data:
+  raw_label: False
+  window: 168
+  horizon: 24
+  normalize: 1
+
+runner:
+  type: ts
+  task: regression
+  optimizer: Adam
+  lr: 0.001
+  weight_decay: 0.0
+  loss_fn: mse
+  metrics: [r2, rrse]
+  observe: loss
+  lower_is_better: True
+  max_epoches: 1000
+  early_stop: 30
+  batch_size: 96
+  aggregate: True
+
+network:
+  type: TCN2D
+  position_embedding: False
+  emb_type: learn
+  kernel_size: 3
+  num_levels: 3
+  channel: 16
+  dilation: 2
+  dropout: 0.
+
+runtime: 
+  seed: 42
+  output_dir: ./outputs/tcn2d_horizon=24_electricity

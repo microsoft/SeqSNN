@@ -1,0 +1,41 @@
+_base_:
+- ../model/isnn2d.yml
+- ../dataset/pems-bay.yml
+_custom_imports_:
+- SeqSNN.network
+- SeqSNN.dataset
+- SeqSNN.runner
+
+data:
+  raw_label: False
+  window: 12
+  horizon: 6
+
+runner:
+  type: snnvsts
+  batch_size: 32
+  aggregate: False
+  out_size: 6
+  denormalize: True
+  task: regression
+  optimizer: Adam
+  lr: 0.0001
+  weight_decay: 0.0
+  loss_fn: mse
+  metrics: [r2, rrse]
+  observe: loss
+  lower_is_better: True
+  max_epoches: 1000
+  early_stop: 30
+  valid_variates: 325
+
+
+network:
+  type: ISNN2d
+  num_steps: 4
+  layers: 2
+  hidden_size: 128
+  encoder_type: conv
+
+# runtime: 
+  # output_dir: ./output/snn2dvsts/horizon=6/pems-bay

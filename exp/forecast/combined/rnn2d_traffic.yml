@@ -1,0 +1,7 @@
+_base_:
+- ../model/rnn2d.yml
+- ../dataset/traffic.yml
+_custom_imports_:
+- selfsuperviser.network
+- selfsuperviser.dataset
+- selfsuperviser.runner
