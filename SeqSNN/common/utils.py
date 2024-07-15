@@ -141,8 +141,6 @@ class GlobalMeter():
             ]
             self.ys = np.concatenate(self.ys, axis=0)
             self.preds = np.concatenate(self.preds, axis=0)
-        else:
-            return
 
     def get_ys(self):
         # deprecated
