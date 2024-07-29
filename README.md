@@ -3,7 +3,7 @@
 A public framework for time-series forecasting with spiking neural networks (SNNs).
 
 ## Related Papers
-* Efficient and Effective Time-Series Forecasting with Spiking Neural Network, [ICML 2024], (https://arxiv.org/pdf/2402.01533).
+* Efficient and Effective Time-Series Forecasting with Spiking Neural Networks, [ICML 2024], (https://arxiv.org/pdf/2402.01533).
 * Advancing Spiking Neural Networks for Sequential Modeling with Central Pattern Generators, [Arxiv:2405.14362], (https://arxiv.org/pdf/2405.14362).
 
 
@@ -17,14 +17,14 @@ cd SeqSNN
 pip install .
 ```
 
-If you would like to make changes and run your own expeirments, use:
+If you would like to make changes and run your experiments, use:
 
 `pip install -e .`
 
 ## Training
 Take the `iSpikformer` model as an example:
 
-`python tsforecast.py exp/forecast/ispikformer/ispikformer_electricity.yml`
+`python -m SeqSNN.entry.tsforecast exp/forecast/ispikformer/ispikformer_electricity.yml`
 
 You can change the `yml` configuration files as you want.
 
@@ -32,10 +32,10 @@ You can add, remove, or modify your model architecture in `forecaster/network/XX
 
 ## Datasets
 
-Metr-la and Pems-bay are available at at [Google Drive](https://drive.google.com/drive/folders/10FOTa6HXPqX8Pf5WRoRwcFnW9BrNZEIX) or [Baidu Yun](https://pan.baidu.com/s/14Yy9isAIZYdU__OYEQGa_g).
+Metr-la and Pems-bay are available at [Google Drive](https://drive.google.com/drive/folders/10FOTa6HXPqX8Pf5WRoRwcFnW9BrNZEIX) or [Baidu Yun](https://pan.baidu.com/s/14Yy9isAIZYdU__OYEQGa_g).
 Solar and Electricity can be downloaded from  (https://github.com/laiguokun/multivariate-time-series-data).
 
-The folder structure of this procect is as follows:
+The folder structure of this project is as follows:
 ```
 SeqSNN
 │   README.md 
@@ -67,7 +67,7 @@ SeqSNN
 │   │   ...
 │
 ```
-You can change the path of data file in `exp/forecast/dataset/XXX.yml` configuration files.
+You can change the path of the data file in `exp/forecast/dataset/XXX.yml` configuration files.
 
 ## Acknowledgement
 This repo is built upon (forecaster)[https://github.com/Arthur-Null/SRD], which is a general time-series forecasting library. We greatly thank @rk2900 and @Arthur-Null for their initial contribution. 
