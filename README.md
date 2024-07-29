@@ -24,7 +24,7 @@ If you would like to make changes and run your experiments, use:
 ## Training
 Take the `iSpikformer` model as an example:
 
-`python entry/tsforecast.py exp/forecast/ispikformer/ispikformer_electricity.yml`
+`python SeqSNN/entry/tsforecast.py exp/forecast/ispikformer/ispikformer_electricity.yml`
 
 You can change the `yml` configuration files as you want.
 
