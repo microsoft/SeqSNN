@@ -79,6 +79,7 @@ def setup():
             "pandas==2.1",
             "snntorch",
             "spikingjelly",
+            "tables"
         ],
         extras_require={"dev": ["pylint"]},
         cmdclass={"bumpver": BumpDevVersion},
