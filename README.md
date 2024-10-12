@@ -4,7 +4,7 @@ A public framework for time-series forecasting with spiking neural networks (SNN
 
 ## Related Papers
 * Efficient and Effective Time-Series Forecasting with Spiking Neural Networks, [ICML 2024], (https://arxiv.org/pdf/2402.01533).
-* Advancing Spiking Neural Networks for Sequential Modeling with Central Pattern Generators, [Arxiv:2405.14362], (https://arxiv.org/pdf/2405.14362).
+* Advancing Spiking Neural Networks for Sequential Modeling with Central Pattern Generators, [NeurIPS 2024], (https://arxiv.org/pdf/2405.14362).
 
 
 ## Installation
