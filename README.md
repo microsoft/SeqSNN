@@ -28,7 +28,7 @@ Take the `iSpikformer` model as an example:
 
 You can change the `yml` configuration files as you want.
 
-You can add, remove, or modify your model architecture in `forecaster/network/XXX.py`.
+You can add, remove, or modify your model architecture in `SeqSNN/network/XXX.py`.
 
 ## Datasets
 

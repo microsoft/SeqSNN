@@ -5,7 +5,7 @@ _custom_imports_:
 
 data:
   type: TSMSDataset
-  file: data/LSTNet_ts/electricity/electricity.txt
+  file: data/electricity/electricity.txt
   window: 168
   horizon: 24
   train_ratio: 0.7
